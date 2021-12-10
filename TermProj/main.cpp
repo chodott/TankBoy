@@ -15,7 +15,7 @@ void main(int argc, char** argv)
 	srand(time(NULL));
 	//GLEW 초기화하기
 	for (int i = 0; i < 256; i++) keyStates[i] = false; //키 값 초기화
-
+	start = time(NULL); //시작 시간 설정
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK)
 	{

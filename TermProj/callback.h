@@ -51,7 +51,7 @@ GLvoid drawScene(GLvoid)
 	unsigned int objColorLocation = glGetUniformLocation(s_program[0], "objectColor");
 
 	//뷰 변환
-	glm::vec3 cameraPos = glm::vec3(tank.x + 1.0f, 2.0f, tank.z + 1.0f); //--- 카메라 위치
+	glm::vec3 cameraPos = glm::vec3(tank.x + 1.0f, 10.0f, tank.z + 1.0f); //--- 카메라 위치
 	glm::vec3 cameraTarget = glm::vec3(tank.x, 0.5f, tank.z);
 	glm::vec3 cameraDirection = glm::normalize(-cameraPos + cameraTarget); //--- 카메라 바라보는 방향
 	glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f); //--- 카메라 위쪽 방향
@@ -200,6 +200,25 @@ GLvoid InitBuffer()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(track), track, GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+
+	//라이플맨
+	glGenBuffers(3, rifle_VBO);
+	glGenVertexArrays(1, &rifle_VAO);
+	glBindVertexArray(rifle_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, rifle_VBO[0]);
+	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, rifle_VBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, rifle_VBO[2]);
+	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glEnableVertexAttribArray(2);
 
 	glEnable(GL_DEPTH_TEST);
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #define STB_IMAGE_IMPLEMENTATION //이미지파일 로드
 #include "stb_image.h"
 #include <iostream>
@@ -18,6 +19,9 @@ using namespace std;
 #define PLATE_SIZE 5.0f
 #define PI 3.141592/180
 #define BLOCK_AMOUNT 30
+#define RIFLE_AMOUNT 30
+
+time_t start; //시간 측정
 
 bool* keyStates = new bool[256]; //키 상태 변수
 
@@ -52,6 +56,8 @@ public:
 	float x, y, z;
 };
 
+bool map[100][100]; // 맵
+
 //총알
 class Bullet {
 public:
@@ -71,6 +77,13 @@ public:
 			this->z = this->point[tic].z;
 			this->tic += 2;
 			if (this->tic == 100) { this->active = 0; }
+		}
+	}
+
+	void enemy_move() { //총알이 같은 클래스라 적 총알 매커니즘 따로 구현했슴다!
+		if (this->active) {
+			this->x += cos(this->r) * this->speed;
+			this->z += sin(this->r) * this->speed;
 		}
 	}
 
@@ -209,23 +222,90 @@ public:
 	}
 };
 
-
-
 //병사
+GLuint rifle_VAO;
+GLuint rifle_VBO[3];
 class RifleMan {
 public:
-	float speed;
+	time_t attack_timer = 0;
+	Bullet bullet[3];
+	float speed = 0.01;
 	float x, y, z;
-	int level;
-	int hp;
-	int power;
+	float rotate = 0;
+	float range = 2.0f;
+	int reload = 1;
+	int hp = 30;
+	int power = 0;
+	int condition = 0;
 	bool active = 0;
 
-	void spawn(int level){
+	void spawn(int level) { //소환
 		this->active = 1;
-		this->x = rand();
-		this->y = rand();
-		this->level = level;
+		while (-1) {
+			int x = rand() % 100;
+			int z = rand() % 100;
+			if (map[z][x] == 0) {
+				this->x = (x - 50) * 0.1f;
+				this->z = (z - 50) * 0.1f;
+				break;
+			}
+		}
+		this->power = level;
+	}
+
+	void draw(unsigned int modelLocation, unsigned int objColorLocation) {
+		if (this->active) {
+			glm::mat4 RIFLE = glm::mat4(1.0f);
+			RIFLE = glm::translate(RIFLE, glm::vec3(this->x, this->y, this->z));
+			RIFLE = glm::rotate(RIFLE, -this->rotate, glm::vec3(0,1,0));
+			RIFLE = glm::scale(RIFLE, glm::vec3(0.1, 0.2, 0.1));
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(RIFLE));
+			glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
+			//glActiveTexture(GL_TEXTURE0);
+			//glBindTexture(GL_TEXTURE_2D, this->body_texture);
+			glBindVertexArray(rifle_VAO);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+		this->bullet[0].draw(rifle_VAO, modelLocation, objColorLocation);
+	}
+
+	void move(float tankX, float tankZ) {
+		float distance = sqrt((tankZ - this->z) * (tankZ - this->z) + (tankX - this->x) * (tankX - this->x)); //간격
+		this->rotate = atan2((tankZ - this->z), (tankX - this->x));
+		if (distance > this->range && this->condition == 0) { //사정거리 보다 멀면 이동
+			this->x += cos(this->rotate) * this->speed;
+			this->z += sin(this->rotate) * this->speed;
+		}
+		else this->attack();
+
+		//총알 이동
+		this->bullet[0].enemy_move();
+	}
+
+	void update(float tankX, float tankZ) {
+		if (this->active) {
+			this->move(tankX, tankZ);
+			if (this->hp <= 0) this->death();
+		}
+	}
+
+	void hit() {
+
+	}
+
+	void attack() {
+		if (time(NULL) - this->attack_timer > this->reload) {
+			this->attack_timer = time(NULL);
+			this->bullet[0].active = 1;
+			this->bullet[0].x = this->x;
+			this->bullet[0].y = 0.5f;
+			this->bullet[0].z = this->z;
+			this->bullet[0].r = this->rotate;
+		}
+	}
+
+	void death() {
+		this->active = 0;
 	}
 };
 
@@ -250,4 +330,7 @@ public:
 
 
 Tank tank;
+
 Block block[BLOCK_AMOUNT];
+
+RifleMan rifle[RIFLE_AMOUNT];
