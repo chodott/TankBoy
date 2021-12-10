@@ -1,6 +1,8 @@
 #pragma once
 #include <stdlib.h>
 #include <stdio.h>
+#define STB_IMAGE_IMPLEMENTATION //이미지파일 로드
+#include "stb_image.h"
 #include <iostream>
 #include <vector>
 #include <gl/glew.h>
@@ -9,6 +11,9 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "shader.h"
+#include "objRead.h"
+
 using namespace std;
 #define PLATE_SIZE 10.0f
 #define PI 3.141592/180
@@ -48,7 +53,7 @@ public:
 //총알
 class Bullet {
 public:
-	Point point[100];
+	Point point[100] = {};
 	float size = 0;
 	float x, y, z;
 	float r = 0;
@@ -62,7 +67,7 @@ public:
 			this->x = this->point[tic].x;
 			this->y = this->point[tic].y;
 			this->z = this->point[tic].z;
-			this->tic++;
+			this->tic += 2;
 			if (this->tic == 100) { this->active = 0; }
 		}
 	}
@@ -88,20 +93,22 @@ public:
 class Tank {
 public:
 	GLuint VAO[2];
+	GLuint VBO_pos[4], VBO_nor[4], VBO_tex[4];
 	Bullet *bullet[10];
-	Point point[100];
-	float arc[30];
+	Point point[100] = {};
 	float tankSpeed = 0.0f;
-	float maxSpeed = 0.01f;
+	float maxSpeed = 0.1f;
 	float tankR = 0; //몸체 각도
 	float headR = 0; //머리 각도
 	float range = 4.3f;
 	float x, y, z;
+	unsigned int body_texture;
 	int bulletCnt = 0;
+	int obj = 0;
 	bool moving = 0;
 	bool push = 0;
 	
-	Tank() { //탱크 생성자
+	Tank() : x{ 0 }, y{ 0 }, z{ 0 } { //탱크 생성자
 		for (int i = 0; i < 10; i++) {
 			this->bullet[i] = new Bullet();
 		}
@@ -111,31 +118,35 @@ public:
 		//탱크 출력
 		glm::mat4 TANK = glm::mat4(1.0f);
 		TANK = glm::translate(TANK, glm::vec3(this->x, 0.1f, this->z));
-		TANK = glm::rotate(TANK, glm::radians(this->tankR), glm::vec3(0, 1, 0));
+		TANK = glm::rotate(TANK, glm::radians(this->tankR + 90.0f), glm::vec3(0, 1, 0));
 		TANK = glm::scale(TANK, glm::vec3(0.1, 0.1, 0.1));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TANK));
-		glUniform3f(objColorLocation, 0.0, 1.0, 0.0);
+		glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, this->body_texture);
 		glBindVertexArray(VAO[0]);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glDrawArrays(GL_TRIANGLES, 0, this->obj);
 		
 		//머리 출력
 		glm::mat4 HEAD = glm::mat4(1.0f);
-		HEAD = glm::translate(HEAD, glm::vec3(this->x, 0.25f, this->z));
-		HEAD = glm::rotate(HEAD, glm::radians(this->headR + this->tankR), glm::vec3(0, 1, 0));
+		HEAD = glm::translate(HEAD, glm::vec3(this->x, 0.5f, this->z));
+		HEAD = glm::rotate(HEAD, glm::radians(this->headR + this->tankR + 90.0f), glm::vec3(0, 1, 0));
 		HEAD = glm::scale(HEAD, glm::vec3(0.05f, 0.05f, 0.05f));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(HEAD));
-		glUniform3f(objColorLocation, 1.0, 1.0, 0.0);
+		glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, this->body_texture);
 		glBindVertexArray(VAO[0]);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glDrawArrays(GL_TRIANGLES, 0, this->obj);
 
-		//발사구 출력
-		glm::mat4 MOUSE = glm::mat4(1.0f);
-		MOUSE = HEAD;
-		MOUSE = glm::translate(MOUSE, glm::vec3(0.2f, 0, 0));
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(MOUSE));
-		glUniform3f(objColorLocation, 0.0, 1.0, 1.0);
-		glBindVertexArray(VAO[0]);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		////발사구 출력
+		//glm::mat4 MOUSE = glm::mat4(1.0f);
+		//MOUSE = HEAD;
+		//MOUSE = glm::translate(MOUSE, glm::vec3(0.2f, 0, 0));
+		//glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(MOUSE));
+		//glUniform3f(objColorLocation, 0.0, 1.0, 1.0);
+		//glBindVertexArray(VAO[0]);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		//총알 출력
 		for (int i = 0; i < 10; i++) this->bullet[i]->draw(VAO[0], modelLocation, objColorLocation);
@@ -145,7 +156,7 @@ public:
 			glm::mat4 POINT = glm::mat4(1.0f);
 			POINT = glm::translate(POINT, glm::vec3(this->point[i].x, this->point[i].y, this->point[i].z));
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(POINT));
-			glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
+			glUniform3f(objColorLocation, 0.0, 0.0, 0.0);
 			glPointSize(5);
 			glBindVertexArray(VAO[1]);
 			glDrawArrays(GL_POINTS, 0, 1);

@@ -8,9 +8,12 @@ GLvoid UpSpecial(int key, int x, int y);
 GLvoid Special(int key, int x, int y);
 GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
+GLvoid InitTexture();
 GLvoid InitBuffer();
 GLuint VAO[4];
 GLuint VBO_position[4];
+GLuint VBO_normal[4];
+GLuint VBO_texture[4];
 
 const int num_vertices = 3;
 const int num_triangles = 1;
@@ -47,7 +50,7 @@ GLvoid drawScene(GLvoid)
 	unsigned int objColorLocation = glGetUniformLocation(s_program[0], "objectColor");
 
 	//뷰 변환
-	glm::vec3 cameraPos = glm::vec3(tank.x + 2.0f, 3.0f, tank.z + 2.0f); //--- 카메라 위치
+	glm::vec3 cameraPos = glm::vec3(tank.x + 2.0f, 2.0f, tank.z + 2.0f); //--- 카메라 위치
 	glm::vec3 cameraTarget = glm::vec3(tank.x, 0.5f, tank.z);
 	glm::vec3 cameraDirection = glm::normalize(-cameraPos + cameraTarget); //--- 카메라 바라보는 방향
 	glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f); //--- 카메라 위쪽 방향
@@ -66,9 +69,8 @@ GLvoid drawScene(GLvoid)
 	//조명
 	unsigned int lightPosLocation = glGetUniformLocation(s_program[0], "lightPos");
 	unsigned int lightColorLocation = glGetUniformLocation(s_program[0], "lightColor");
-	glUniform3f(lightPosLocation, 0.0f, 0.0f, 0.0f);
+	glUniform3f(lightPosLocation, 0, 5.0f, 0);
 	glUniform3f(lightColorLocation, 1.0f,1.0f,1.0f);
-
 	//평면 출력
 	glm::mat4 PLATE = glm::mat4(1.0f);
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(PLATE));
@@ -137,9 +139,11 @@ GLvoid Timer(int value)
 
 GLvoid InitBuffer()
 {
-	num_Triangle = loadObj_normalize_center("sphere.obj");
+	tank.obj = loadObj("tank_body.obj");
 	glGenVertexArrays(4, VAO);
 	glGenBuffers(4, VBO_position);
+	glGenBuffers(4, VBO_normal);
+	glGenBuffers(4, VBO_texture);
 	glUseProgram(s_program[0]);
 
 	//평면
@@ -161,27 +165,58 @@ GLvoid InitBuffer()
 	glEnableVertexAttribArray(1);
 
 	//탱크(임의)
+	glGenBuffers(4, tank.VBO_pos);
+	glGenBuffers(4, tank.VBO_nor);
+	glGenBuffers(4, tank.VBO_tex);
 	glGenVertexArrays(2, tank.VAO);
 	glBindVertexArray(tank.VAO[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_position[2]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glBindBuffer(GL_ARRAY_BUFFER, tank.VBO_pos[0]);
+	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+
+	glBindBuffer(GL_ARRAY_BUFFER, tank.VBO_nor[0]);
+	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, tank.VBO_tex[0]);
+	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glEnableVertexAttribArray(2);
 
 	//포물선 점
 	glBindVertexArray(tank.VAO[1]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_position[3]);
+	glBindBuffer(GL_ARRAY_BUFFER, tank.VBO_pos[1]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(track), track, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glBindBuffer(GL_ARRAY_BUFFER, tank.VBO_nor[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(track), track, GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-
-
-
 
 	glEnable(GL_DEPTH_TEST);
 
+}
+
+GLvoid InitTexture() {
+	int widthImage, heightImage, numberOfChannel;
+	stbi_set_flip_vertically_on_load(true);
+
+	widthImage = 512;
+	heightImage = 512;
+	numberOfChannel = 0;
+
+	glGenTextures(1, &tank.body_texture);
+
+	glBindTexture(GL_TEXTURE_2D, tank.body_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	unsigned char* data0 = stbi_load("tank_body_diffuse.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data0);
+
+	stbi_image_free(data0);
 }

@@ -1,7 +1,5 @@
-#include "figure.h"
-#include "shader.h"
+
 #include "callback.h"
-#include "objRead.cpp"
 
 GLchar* vertexSource;
 GLchar* fragmentSource;
@@ -42,6 +40,7 @@ void main(int argc, char** argv)
 
 	glEnable(GL_DEPTH_TEST);
 	InitBuffer();
+	InitTexture();
 	glutDisplayFunc(drawScene);
 	glutReshapeFunc(Reshape);
 	glutKeyboardFunc(Keyboard);
