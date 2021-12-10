@@ -25,15 +25,15 @@ void main(int argc, char** argv)
 	else
 		std::cout << "GLEW Initialized\n";
 	//create shader program
-	GLuint vShader[4];
-	GLuint fShader[4];
+	GLuint vShader;
+	GLuint fShader;
 
-	vShader[0] = MakeVertexShader("vertex.glsl", 0);			// Sun
-	fShader[0] = MakeFragmentShader("fragment.glsl", 0);
+	vShader = MakeVertexShader("vertex.glsl", 0);
+	fShader = MakeFragmentShader("fragment.glsl", 0);
 	//shader program
 	s_program[0] = glCreateProgram();
-	glAttachShader(s_program[0], vShader[0]);
-	glAttachShader(s_program[0], fShader[0]);
+	glAttachShader(s_program[0], vShader);
+	glAttachShader(s_program[0], fShader);
 	glLinkProgram(s_program[0]);
 	checkCompileErrors(s_program[0], "PROGRAM");
 

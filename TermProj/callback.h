@@ -18,23 +18,24 @@ GLuint VBO_texture[4];
 const int num_vertices = 3;
 const int num_triangles = 1;
 
+unsigned int ground_texture;
+
 //--- load obj related variabales
 int loadObj(const char* filename);
 int loadObj_normalize_center(const char* filename);
 float* sphere_object;
 int num_Triangle;
 
-bool* keyStates = new bool[256]; //키 상태 변수
 
 void keyOperations(void) { //키 상호작용 함수
 	if (keyStates[0]) tank.range += 0.1f;
 	if (keyStates[1]) tank.headR += 5.0f;
 	if (keyStates[2]) tank.range -= 0.1f;
 	if (keyStates[3]) tank.headR -= 5.0f;
-	if (keyStates[4]) tank.tankR += 1.0f;
-	if (keyStates[5]) tank.move(true);
-	if (keyStates[6]) tank.tankR -= 1.0f;
-	if (keyStates[7]) tank.move(false);
+	if (keyStates[4]) tank.tankR += 1.0f; //왼
+	if (keyStates[5]) tank.move(1); //앞
+	if (keyStates[6]) tank.tankR -= 1.0f; //오
+	if (keyStates[7]) tank.move(-1); //뒤
 }
 
 GLvoid drawScene(GLvoid)
@@ -50,7 +51,7 @@ GLvoid drawScene(GLvoid)
 	unsigned int objColorLocation = glGetUniformLocation(s_program[0], "objectColor");
 
 	//뷰 변환
-	glm::vec3 cameraPos = glm::vec3(tank.x + 2.0f, 2.0f, tank.z + 2.0f); //--- 카메라 위치
+	glm::vec3 cameraPos = glm::vec3(tank.x + 1.0f, 2.0f, tank.z + 1.0f); //--- 카메라 위치
 	glm::vec3 cameraTarget = glm::vec3(tank.x, 0.5f, tank.z);
 	glm::vec3 cameraDirection = glm::normalize(-cameraPos + cameraTarget); //--- 카메라 바라보는 방향
 	glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f); //--- 카메라 위쪽 방향
@@ -71,10 +72,13 @@ GLvoid drawScene(GLvoid)
 	unsigned int lightColorLocation = glGetUniformLocation(s_program[0], "lightColor");
 	glUniform3f(lightPosLocation, 0, 5.0f, 0);
 	glUniform3f(lightColorLocation, 1.0f,1.0f,1.0f);
+
 	//평면 출력
 	glm::mat4 PLATE = glm::mat4(1.0f);
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(PLATE));
-	glUniform3f(objColorLocation, 0.5, 0.5, 0.0);
+	glUniform3f(objColorLocation, 0.5, 0.5, 0.5);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, ground_texture);
 	glBindVertexArray(VAO[0]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	
@@ -112,9 +116,9 @@ GLvoid Special(int key, int x, int y)
 {
 	switch (key) {
 	case 100: keyStates[4] = true; break;
-	case 101: keyStates[5] = true; break;
+	case 101: {keyStates[7] = false; tank.moving = 1; keyStates[5] = true; break; }
 	case 102: keyStates[6] = true; break;
-	case 103: keyStates[7] = true; break;
+	case 103: {keyStates[5] = false; tank.moving = 1; keyStates[7] = true; break; }
 	}
 }
 
@@ -122,9 +126,9 @@ GLvoid UpSpecial(int key, int x, int y)
 {
 	switch (key) {
 	case 100: keyStates[4] = false; break;
-	case 101: keyStates[5] = false; break;
+	case 101: tank.moving = 0; break;
 	case 102: keyStates[6] = false; break;
-	case 103: keyStates[7] = false; break;
+	case 103: tank.moving = 0; break;
 	}
 }
 
@@ -132,7 +136,6 @@ GLvoid Timer(int value)
 {
 	keyOperations();
 	update();
-	for (int i = 0; i < 10; i++) tank.bullet[i]->move();
 	glutPostRedisplay();
 	glutTimerFunc(20, Timer, 1);
 }
@@ -150,10 +153,12 @@ GLvoid InitBuffer()
 	glBindVertexArray(VAO[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO_position[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(plate), plate, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
 	//장애물
 	glBindVertexArray(VAO[1]);
@@ -218,5 +223,16 @@ GLvoid InitTexture() {
 	unsigned char* data0 = stbi_load("tank_body_diffuse.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data0);
 
+	glGenTextures(1, &ground_texture);
+
+	glBindTexture(GL_TEXTURE_2D, ground_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	unsigned char* data1 = stbi_load("temp_ground.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data1);
+	
 	stbi_image_free(data0);
+	stbi_image_free(data1);
 }

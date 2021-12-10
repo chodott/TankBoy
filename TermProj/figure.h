@@ -15,14 +15,16 @@
 #include "objRead.h"
 
 using namespace std;
-#define PLATE_SIZE 10.0f
+#define PLATE_SIZE 5.0f
 #define PI 3.141592/180
 #define BLOCK_AMOUNT 30
 
+bool* keyStates = new bool[256]; //키 상태 변수
+
 //평면
 float plate[] = {
-	-PLATE_SIZE, 0.0f, -PLATE_SIZE, 0.0f, 1.0f, 0.0f, -PLATE_SIZE, 0.0f, PLATE_SIZE, 0.0f, 1.0f, 0.0f, PLATE_SIZE, 0.0f, PLATE_SIZE, 0.0f, 1.0f, 0.0f,
-	-PLATE_SIZE, 0.0f, -PLATE_SIZE, 0.0f, 1.0f, 0.0f, PLATE_SIZE, 0.0f, PLATE_SIZE, 0.0f, 1.0f, 0.0f, PLATE_SIZE, 0.0f, -PLATE_SIZE, 0.0f, 1.0f, 0.0f,
+	-PLATE_SIZE, 0.0f, -PLATE_SIZE, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -PLATE_SIZE, 0.0f, PLATE_SIZE, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, PLATE_SIZE, 0.0f, PLATE_SIZE, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+	-PLATE_SIZE, 0.0f, -PLATE_SIZE, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, PLATE_SIZE, 0.0f, PLATE_SIZE, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, PLATE_SIZE, 0.0f, -PLATE_SIZE, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f
 };
 
 //사각형
@@ -97,7 +99,7 @@ public:
 	Bullet *bullet[10];
 	Point point[100] = {};
 	float tankSpeed = 0.0f;
-	float maxSpeed = 0.1f;
+	float maxSpeed = 0.12f;
 	float tankR = 0; //몸체 각도
 	float headR = 0; //머리 각도
 	float range = 4.3f;
@@ -119,7 +121,7 @@ public:
 		glm::mat4 TANK = glm::mat4(1.0f);
 		TANK = glm::translate(TANK, glm::vec3(this->x, 0.1f, this->z));
 		TANK = glm::rotate(TANK, glm::radians(this->tankR + 90.0f), glm::vec3(0, 1, 0));
-		TANK = glm::scale(TANK, glm::vec3(0.1, 0.1, 0.1));
+		TANK = glm::scale(TANK, glm::vec3(0.02, 0.02, 0.02));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TANK));
 		glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
 		glActiveTexture(GL_TEXTURE0);
@@ -129,9 +131,9 @@ public:
 		
 		//머리 출력
 		glm::mat4 HEAD = glm::mat4(1.0f);
-		HEAD = glm::translate(HEAD, glm::vec3(this->x, 0.5f, this->z));
+		HEAD = glm::translate(HEAD, glm::vec3(this->x, 0.2f, this->z));
 		HEAD = glm::rotate(HEAD, glm::radians(this->headR + this->tankR + 90.0f), glm::vec3(0, 1, 0));
-		HEAD = glm::scale(HEAD, glm::vec3(0.05f, 0.05f, 0.05f));
+		HEAD = glm::scale(HEAD, glm::vec3(0.01f, 0.01f, 0.01f));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(HEAD));
 		glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
 		glActiveTexture(GL_TEXTURE0);
@@ -163,17 +165,24 @@ public:
 		}
 	}
 
-	void move(bool straight){ //이동 함수
-		if (this->moving == 1 && this->tankSpeed <= this->maxSpeed) this->tankSpeed += 0.0001f;
-		else this->moving = 1;
-		if (straight) {
-			this->x = this->x + cos(-this->tankR * PI) * this->tankSpeed;
-			this->z = this->z + sin(-this->tankR * PI) * this->tankSpeed;
+	void move(int straight){ //이동 함수
+		if (straight > 0) {
+			if (moving == 1 && this->tankSpeed <= this->maxSpeed) this->tankSpeed += 0.004f;
+			else if (keyStates[5] && moving == 0) {
+				this->tankSpeed -= 0.006f;
+				if (this->tankSpeed <= 0.0f) { this->tankSpeed = 0.0f; keyStates[5] = false;}
+			}
 		}
-		else {
-			this->x = this->x - cos(-this->tankR * PI) * this->tankSpeed;
-			this->z = this->z - sin(-this->tankR * PI) * this->tankSpeed;
+		else if(straight < 0) {
+			if (moving == 1 && this->tankSpeed >= (-1.0f * this->maxSpeed)) this->tankSpeed -= 0.004f;
+			else if (keyStates[7] && moving == 0) {
+				this->tankSpeed += 0.006f;
+				if ( this->tankSpeed >= 0.0f) { this->tankSpeed = 0.0f; keyStates[7] = false; }
+			}
 		}
+
+		this->x = this->x + cos(-this->tankR * PI) * this->tankSpeed;
+		this->z = this->z + sin(-this->tankR * PI) * this->tankSpeed;
 	}
 
 	void update() {
