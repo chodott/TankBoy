@@ -18,8 +18,6 @@ GLuint VBO_texture[4];
 const int num_vertices = 3;
 const int num_triangles = 1;
 
-unsigned int ground_texture;
-
 //--- load obj related variabales
 int loadObj(const char* filename);
 int loadObj_normalize_center(const char* filename);
@@ -51,7 +49,7 @@ GLvoid drawScene(GLvoid)
 	unsigned int objColorLocation = glGetUniformLocation(s_program[0], "objectColor");
 
 	//뷰 변환
-	glm::vec3 cameraPos = glm::vec3(tank.x + 1.0f, 10.0f, tank.z + 1.0f); //--- 카메라 위치
+	glm::vec3 cameraPos = glm::vec3(tank.x, 5.0f, tank.z + 5.0f); //--- 카메라 위치
 	glm::vec3 cameraTarget = glm::vec3(tank.x, 0.5f, tank.z);
 	glm::vec3 cameraDirection = glm::normalize(-cameraPos + cameraTarget); //--- 카메라 바라보는 방향
 	glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f); //--- 카메라 위쪽 방향
@@ -142,7 +140,9 @@ GLvoid Timer(int value)
 
 GLvoid InitBuffer()
 {
+	
 	tank.obj = loadObj("tank_body.obj");
+	rifle_obj = loadObj("rifle.obj");
 	glGenVertexArrays(4, VAO);
 	glGenBuffers(4, VBO_position);
 	glGenBuffers(4, VBO_normal);
@@ -224,23 +224,13 @@ GLvoid InitBuffer()
 
 }
 
-GLvoid InitTexture() {
+GLvoid InitTexture() { //여기 평면이랑 탱크 순서 바꿔뒀어열
 	int widthImage, heightImage, numberOfChannel;
 	stbi_set_flip_vertically_on_load(true);
 
 	widthImage = 512;
 	heightImage = 512;
 	numberOfChannel = 0;
-
-	glGenTextures(1, &tank.body_texture);
-
-	glBindTexture(GL_TEXTURE_2D, tank.body_texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	unsigned char* data0 = stbi_load("tank_body_diffuse.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data0);
 
 	glGenTextures(1, &ground_texture);
 
@@ -249,8 +239,19 @@ GLvoid InitTexture() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	unsigned char* data1 = stbi_load("temp_ground.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	unsigned char* data0 = stbi_load("temp_ground.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data0);
+
+	glGenTextures(1, &tank.body_texture);
+
+	glBindTexture(GL_TEXTURE_2D, tank.body_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	unsigned char* data1 = stbi_load("tank_body_diffuse.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data1);
+
 	
 	stbi_image_free(data0);
 	stbi_image_free(data1);

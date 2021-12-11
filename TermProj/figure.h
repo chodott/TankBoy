@@ -14,6 +14,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "shader.h"
 #include "objRead.h"
+#include "music.h"
 
 using namespace std;
 #define PLATE_SIZE 5.0f
@@ -26,6 +27,7 @@ time_t start; //시간 측정
 bool* keyStates = new bool[256]; //키 상태 변수
 
 //평면
+unsigned int ground_texture;
 float plate[] = {
 	-PLATE_SIZE, 0.0f, -PLATE_SIZE, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -PLATE_SIZE, 0.0f, PLATE_SIZE, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, PLATE_SIZE, 0.0f, PLATE_SIZE, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
 	-PLATE_SIZE, 0.0f, -PLATE_SIZE, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, PLATE_SIZE, 0.0f, PLATE_SIZE, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, PLATE_SIZE, 0.0f, -PLATE_SIZE, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f
@@ -62,7 +64,7 @@ bool map[100][100]; // 맵
 class Bullet {
 public:
 	Point point[100] = {};
-	float size = 0;
+	float size = 0.1f;
 	float x, y, z;
 	float r = 0;
 	float speed = 0.2f;
@@ -92,7 +94,7 @@ public:
 			glm::mat4 TANKBULLET = glm::mat4(1.0f);
 			TANKBULLET = glm::translate(TANKBULLET, glm::vec3(this->x, this->y, this->z));
 			TANKBULLET = glm::rotate(TANKBULLET, glm::radians(this->r), glm::vec3(0, 1, 0));
-			TANKBULLET = glm::scale(TANKBULLET, glm::vec3(0.04f, 0.01f, 0.01f));
+			TANKBULLET = glm::scale(TANKBULLET, glm::vec3(this->size, this->size, this->size));
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TANKBULLET));
 			glUniform3f(objColorLocation, 0.0, 0.0, 0.0);
 			glBindVertexArray(VAO);
@@ -116,10 +118,13 @@ public:
 	float tankR = 0; //몸체 각도
 	float headR = 0; //머리 각도
 	float range = 4.3f;
+	float size = 0.1f;
 	float x, y, z;
 	unsigned int body_texture;
+	int hp = 5;
 	int bulletCnt = 0;
 	int obj = 0;
+	bool death = 0;
 	bool moving = 0;
 	bool push = 0;
 	
@@ -130,11 +135,12 @@ public:
 	}
 
 	void draw(unsigned int modelLocation, unsigned int objColorLocation) {
+		if(!this->death){
 		//탱크 출력
 		glm::mat4 TANK = glm::mat4(1.0f);
 		TANK = glm::translate(TANK, glm::vec3(this->x, 0.1f, this->z));
 		TANK = glm::rotate(TANK, glm::radians(this->tankR + 90.0f), glm::vec3(0, 1, 0));
-		TANK = glm::scale(TANK, glm::vec3(0.02, 0.02, 0.02));
+		TANK = glm::scale(TANK, glm::vec3(this->size, this->size, this->size));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TANK));
 		glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
 		glActiveTexture(GL_TEXTURE0);
@@ -167,7 +173,7 @@ public:
 		for (int i = 0; i < 10; i++) this->bullet[i]->draw(VAO[0], modelLocation, objColorLocation);
 
 		//포물선 출력
-		for (int i = 0; i < 100; i+=10) {
+		for (int i = 0; i < 100; i += 10) {
 			glm::mat4 POINT = glm::mat4(1.0f);
 			POINT = glm::translate(POINT, glm::vec3(this->point[i].x, this->point[i].y, this->point[i].z));
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(POINT));
@@ -175,6 +181,7 @@ public:
 			glPointSize(5);
 			glBindVertexArray(VAO[1]);
 			glDrawArrays(GL_POINTS, 0, 1);
+		}
 		}
 	}
 
@@ -220,21 +227,35 @@ public:
 		this->bullet[this->bulletCnt]->r = this->headR + this->tankR;
 		this->bulletCnt = (this->bulletCnt + 1) % 10;
 	}
+
+	void hit() {
+		this->hp -= 1;
+		if (this->hp <= 0) this->death = 1;
+	}
+
+	bool collide(float extraX, float extraY, float extraZ, float extraSize) {
+		float distance = sqrt((this->x - extraX) * (this->x - extraX) + (this->y - extraY) * (this->y - extraY) + (this->z - extraZ) * (this->z - extraZ));
+		if (extraSize + this->size >= distance) return true;
+		return false;
+	}
 };
 
 //병사
 GLuint rifle_VAO;
 GLuint rifle_VBO[3];
+unsigned int rifle_texture;
+int rifle_obj;
 class RifleMan {
 public:
 	time_t attack_timer = 0;
 	Bullet bullet[3];
-	float speed = 0.01;
+	float speed = 0.001;
 	float x, y, z;
 	float rotate = 0;
 	float range = 2.0f;
+	float size = 0.1f;
 	int reload = 1;
-	int hp = 30;
+	int hp = 1;
 	int power = 0;
 	int condition = 0;
 	bool active = 0;
@@ -246,6 +267,7 @@ public:
 			int z = rand() % 100;
 			if (map[z][x] == 0) {
 				this->x = (x - 50) * 0.1f;
+				this->y = 0.1f;
 				this->z = (z - 50) * 0.1f;
 				break;
 			}
@@ -258,13 +280,13 @@ public:
 			glm::mat4 RIFLE = glm::mat4(1.0f);
 			RIFLE = glm::translate(RIFLE, glm::vec3(this->x, this->y, this->z));
 			RIFLE = glm::rotate(RIFLE, -this->rotate, glm::vec3(0,1,0));
-			RIFLE = glm::scale(RIFLE, glm::vec3(0.1, 0.2, 0.1));
+			RIFLE = glm::scale(RIFLE, glm::vec3(this->size, this->size, this->size));
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(RIFLE));
 			glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
 			//glActiveTexture(GL_TEXTURE0);
 			//glBindTexture(GL_TEXTURE_2D, this->body_texture);
 			glBindVertexArray(rifle_VAO);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glDrawArrays(GL_TRIANGLES, 0, rifle_obj);
 		}
 		this->bullet[0].draw(rifle_VAO, modelLocation, objColorLocation);
 	}
@@ -285,12 +307,14 @@ public:
 	void update(float tankX, float tankZ) {
 		if (this->active) {
 			this->move(tankX, tankZ);
-			if (this->hp <= 0) this->death();
 		}
 	}
 
 	void hit() {
-
+		if (this->active) {
+			this->hp -= 1;
+			if (this->hp <= 0) this->active = 0;
+		}
 	}
 
 	void attack() {
@@ -298,14 +322,16 @@ public:
 			this->attack_timer = time(NULL);
 			this->bullet[0].active = 1;
 			this->bullet[0].x = this->x;
-			this->bullet[0].y = 0.5f;
+			this->bullet[0].y = 0.01f;
 			this->bullet[0].z = this->z;
 			this->bullet[0].r = this->rotate;
 		}
 	}
 
-	void death() {
-		this->active = 0;
+	bool collide(float extraX, float extraY, float extraZ,  float extraSize) {
+		float distance = sqrt((this->x - extraX) * (this->x - extraX) + (this->y - extraY)* (this->y-extraY) +(this->z - extraZ) * (this->z - extraZ));
+		if (extraSize + this->size >= distance) return true;
+		return false;
 	}
 };
 
