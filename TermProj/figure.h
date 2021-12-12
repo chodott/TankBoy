@@ -9,7 +9,7 @@ void setBlock();
 #define ITEM_AMOUNT 10
 
 //Æò¸é
-unsigned int ground_texture;
+unsigned int ground_texture, wall_texture;
 float plate[] = {
 	-PLATE_SIZE, 0.0f, -PLATE_SIZE, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -PLATE_SIZE, 0.0f, PLATE_SIZE, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, PLATE_SIZE, 0.0f, PLATE_SIZE, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
 	-PLATE_SIZE, 0.0f, -PLATE_SIZE, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, PLATE_SIZE, 0.0f, PLATE_SIZE, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, PLATE_SIZE, 0.0f, -PLATE_SIZE, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f
@@ -192,9 +192,12 @@ public:
 				if ( this->tankSpeed >= 0.0f) { this->tankSpeed = 0.0f; keyStates[7] = false; }
 			}
 		}
-
-		this->x = this->x + cos(-this->tankR * PI) * this->tankSpeed;
-		this->z = this->z + sin(-this->tankR * PI) * this->tankSpeed;
+		float nextx = this->x + cos(-this->tankR * PI) * (3 * this->tankSpeed);
+		float nextz = this->z + sin(-this->tankR * PI) * (3 * this->tankSpeed);
+		if (nextx >= 24.6f || nextx <= -24.6f) this->x = this->x;
+		else this->x = this->x + cos(-this->tankR * PI) * this->tankSpeed;
+		if (nextz >= 24.6f || nextz <= -24.6f) this->z = this->z;
+		else this->z = this->z + sin(-this->tankR * PI) * this->tankSpeed;
 	}
 
 	void update() {

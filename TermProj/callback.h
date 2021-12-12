@@ -70,12 +70,29 @@ GLvoid drawScene(GLvoid)
 	//Æò¸é Ãâ·Â
 	glm::mat4 PLATE = glm::mat4(1.0f);
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(PLATE));
-	glUniform3f(objColorLocation, 0.5, 0.5, 0.5);
+	glUniform3f(objColorLocation, 0.7, 0.7, 0.7);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, ground_texture);
 	glBindVertexArray(VAO[0]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-	
+
+	glm::mat4 WALL_left = glm::mat4(1.0f);
+	WALL_left = glm::translate(WALL_left, glm::vec3(-25.0f, 25.0f, 0.0f));
+	WALL_left = glm::rotate(WALL_left, (GLfloat)glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	WALL_left = glm::rotate(WALL_left, (GLfloat)glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(WALL_left));
+	glBindTexture(GL_TEXTURE_2D, wall_texture);
+	glBindVertexArray(VAO[0]);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glm::mat4 WALL_right = glm::mat4(1.0f);
+	WALL_right = glm::translate(WALL_right, glm::vec3(0.0f, 25.0f, -25.0f));
+	WALL_right = glm::rotate(WALL_right, (GLfloat)glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(WALL_right));
+	glBindTexture(GL_TEXTURE_2D, wall_texture);
+	glBindVertexArray(VAO[0]);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
 	draw(modelLocation, objColorLocation);
 
 	//´õºí ¹öÆÛ¸µ
@@ -336,7 +353,7 @@ GLvoid InitTexture() { //¿©±â Æò¸éÀÌ¶û ÅÊÅ© ¼ø¼­ ¹Ù²ãµ×¾î¿­
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	unsigned char* data0 = stbi_load("temp_ground.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	unsigned char* data0 = stbi_load("room_ground.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data0);
 
 	glGenTextures(1, &tank.body_texture);
@@ -379,9 +396,20 @@ GLvoid InitTexture() { //¿©±â Æò¸éÀÌ¶û ÅÊÅ© ¼ø¼­ ¹Ù²ãµ×¾î¿­
 	unsigned char* data4 = stbi_load("obsta_diffuse.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data4);
 
+	glGenTextures(1, &wall_texture); //º®
+
+	glBindTexture(GL_TEXTURE_2D, wall_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	unsigned char* data5 = stbi_load("room_wall.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data5);
+
 	stbi_image_free(data0);
 	stbi_image_free(data1);
 	stbi_image_free(data2);
 	stbi_image_free(data3);
 	stbi_image_free(data4);
+	stbi_image_free(data5);
 }
