@@ -1,30 +1,10 @@
-#pragma once
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#define STB_IMAGE_IMPLEMENTATION //이미지파일 로드
-#include "stb_image.h"
-#include <iostream>
-#include <vector>
-#include <gl/glew.h>
-#include <gl/freeglut.h>
-#include <gl/freeglut_ext.h>
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include "shader.h"
-#include "objRead.h"
-#include "music.h"
+#include "manage.h"
 
-using namespace std;
 #define PLATE_SIZE 5.0f
 #define PI 3.141592/180
 #define BLOCK_AMOUNT 30
 #define RIFLE_AMOUNT 30
-
-time_t start; //시간 측정
-
-bool* keyStates = new bool[256]; //키 상태 변수
+#define ITEM_AMOUNT 10
 
 //평면
 unsigned int ground_texture;
@@ -33,7 +13,7 @@ float plate[] = {
 	-PLATE_SIZE, 0.0f, -PLATE_SIZE, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, PLATE_SIZE, 0.0f, PLATE_SIZE, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, PLATE_SIZE, 0.0f, -PLATE_SIZE, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f
 };
 
-//사각형
+//정육면체
 float vertices[] = { 
 -1.0, -1.0, -1.0, 0.0f, 0.0f, -1.0f, 1.0, -1.0, -1.0, 0.0f, 0.0f, -1.0f, 1.0, 1.0, -1.0, 0.0f, 0.0f, -1.0f,
 1.0, 1.0, -1.0, 0.0f, 0.0f, -1.0f, -1.0, 1.0, -1.0, 0.0f, 0.0f, -1.0f, -1.0, -1.0, -1.0, 0.0f, 0.0f, -1.0f,
@@ -49,6 +29,7 @@ float vertices[] = {
 1.0, 1.0, 1.0, 0.0f, 1.0f, 0.0f, -1.0, 1.0, 1.0, 0.0f, 1.0f, 0.0f, -1.0, 1.0, -1.0, 0.0f, 1.0f, 0.0f
 };
 
+//포물선 점
 float track[] = {
 	0,0,0,0,0,0
 };
@@ -57,8 +38,6 @@ class Point {
 public:
 	float x, y, z;
 };
-
-bool map[100][100]; // 맵
 
 //총알
 class Bullet {
@@ -118,6 +97,8 @@ public:
 	float maxSpeed = 0.12f;
 	float tankR = 0; //몸체 각도
 	float headR = 0; //머리 각도
+	float maxRange = 10.0f;
+	float minRange = 2.0f;
 	float range = 4.3f;
 	float size = 0.1f;
 	float x, y, z;
@@ -174,7 +155,7 @@ public:
 		for (int i = 0; i < 10; i++) this->bullet[i]->draw(VAO[0], modelLocation, objColorLocation);
 
 		//포물선 출력
-		for (int i = 0; i < 150; i += 9) {
+		for (int i = 0; i < 100; i += 9) {
 			glm::mat4 POINT = glm::mat4(1.0f);
 			POINT = glm::translate(POINT, glm::vec3(this->point[i].x, this->point[i].y, this->point[i].z));
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(POINT));
@@ -232,6 +213,15 @@ public:
 	void hit() {
 		this->hp -= 1;
 		if (this->hp <= 0) this->death = 1;
+	}
+
+	void upgrade(int skill) {
+		switch (skill) {
+		case 0: this->size += 0.1f; break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		}
 	}
 
 	bool collide(float extraX, float extraY, float extraZ, float extraSize) {
@@ -344,14 +334,64 @@ public:
 	void getPos(float x, float y, float z) {
 		this->x = x; this->y = y; this->z = z;
 	}
-	void draw(unsigned int modelLocation, unsigned int objColorLocation, GLuint VAO) {
+	void draw(unsigned int modelLocation, unsigned int objColorLocation) {
 		glm::mat4 BLOCK = glm::mat4(1.0f);
 		BLOCK = glm::translate(BLOCK, glm::vec3(this->x, this->y, this->z));
 		BLOCK = glm::scale(BLOCK, glm::vec3(this->size, this->size, this->size));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(BLOCK));
 		glUniform3f(objColorLocation, 0.0, 0.0, 0.7);
-		glBindVertexArray(VAO);
+		glBindVertexArray(VAO[1]);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
+	}
+};
+
+class Item {
+public:
+	float x, y, z;
+	float size = 0.1;
+	float speed = 0.005;
+	int skill = 0;
+	bool active = 0;
+	bool onfoot = 0;
+
+	void draw(unsigned int modelLocation, unsigned int objColorLocation) {
+		if (this->active) {
+			glm::mat4 ITEM = glm::mat4(1.0f);
+			ITEM = glm::translate(ITEM, glm::vec3(this->x, this->y, this->z));
+			ITEM = glm::scale(ITEM, glm::vec3(this->size, this->size, this->size));
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(ITEM));
+			glUniform3f(objColorLocation, 0.0, 0.0, 0.7);
+			glBindVertexArray(VAO[1]);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+	}
+
+	void spawn() {
+		this->onfoot = 0;
+		this->active = 1;
+		while (-1) {
+			int x = rand() % 100;
+			int z = rand() % 100;
+			if (map[z][x] == 0) {
+				this->x = (x - 50) * 0.1f;
+				this->y = 5.0f;
+				this->z = (z - 50) * 0.1f;
+				break;
+			}
+		}
+	}
+
+	void update() {
+		if (this->active) {
+			this->move();
+		}
+	}
+
+	void move() {
+		if (!this->onfoot) {
+			if (this->y <= this->size / 2) { this->y = this->size / 2; this->onfoot = 1; }
+			else this->y -= this->speed;
+		}
 	}
 };
 
@@ -361,3 +401,5 @@ Tank tank;
 Block block[BLOCK_AMOUNT];
 
 RifleMan rifle[RIFLE_AMOUNT];
+
+Item item[ITEM_AMOUNT];

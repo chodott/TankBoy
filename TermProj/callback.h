@@ -10,10 +10,6 @@ GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
 GLvoid InitTexture();
 GLvoid InitBuffer();
-GLuint VAO[4];
-GLuint VBO_position[4];
-GLuint VBO_normal[4];
-GLuint VBO_texture[4];
 
 const int num_vertices = 3;
 const int num_triangles = 1;
@@ -26,9 +22,9 @@ int num_Triangle;
 
 
 void keyOperations(void) { //키 상호작용 함수
-	if (keyStates[0]) tank.range += 0.1f;
+	if (keyStates[0] && tank.maxRange >= tank.range) tank.range += 0.1f;
 	if (keyStates[1]) tank.headR += 5.0f;
-	if (keyStates[2]) tank.range -= 0.1f;
+	if (keyStates[2] && tank.minRange <= tank.range) tank.range -= 0.1f;
 	if (keyStates[3]) tank.headR -= 5.0f;
 	if (keyStates[4]) tank.tankR += 1.0f; //왼
 	if (keyStates[5]) tank.move(1); //앞
@@ -80,7 +76,7 @@ GLvoid drawScene(GLvoid)
 	glBindVertexArray(VAO[0]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	
-	draw(modelLocation, objColorLocation, VAO);
+	draw(modelLocation, objColorLocation);
 
 	//더블 버퍼링
 	glutSwapBuffers();
