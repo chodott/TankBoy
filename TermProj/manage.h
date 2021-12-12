@@ -30,4 +30,6 @@ GLuint VBO_normal[4];
 GLuint VBO_texture[4];
 
 
-bool map[100][100]; // ∏ 
+
+//bool map[100][100]; // ∏ 
+bool map[50][50]; // ∏  ªÁ¿Ã¡Ó 50x50

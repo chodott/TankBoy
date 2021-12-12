@@ -1,8 +1,10 @@
 #include "manage.h"
 
-#define PLATE_SIZE 5.0f
+void setBlock();
+
+#define PLATE_SIZE 25.0f
 #define PI 3.141592/180
-#define BLOCK_AMOUNT 30
+#define BLOCK_AMOUNT 50
 #define RIFLE_AMOUNT 30
 #define ITEM_AMOUNT 10
 
@@ -89,7 +91,7 @@ public:
 //탱크
 class Tank {
 public:
-	GLuint VAO[2];
+	GLuint VAO[4]; //[0]:탱크 몸통 [1]:포물선 [2]:탱크 머리 [3]:탱크 포신
 	GLuint VBO_pos[4], VBO_nor[4], VBO_tex[4];
 	Bullet *bullet[10];
 	Point point[100] = {};
@@ -97,15 +99,17 @@ public:
 	float maxSpeed = 0.12f;
 	float tankR = 0; //몸체 각도
 	float headR = 0; //머리 각도
+	float heady = 0.0f; //머리 애니메이션에 사용
 	float maxRange = 10.0f;
 	float minRange = 2.0f;
 	float range = 4.3f;
-	float size = 0.1f;
+	float size = 1.0f;
 	float x, y, z;
-	unsigned int body_texture;
+	unsigned int body_texture, head_texture, cannon_texture;
 	int hp = 5;
 	int bulletCnt = 0;
-	int obj = 0;
+	int obj_body = 0, obj_head = 0, obj_cannon = 0;
+	int head_frame = 0; //머리 흔들리는 애니메이션에 사용
 	bool death = 0;
 	bool moving = 0;
 	bool push = 0;
@@ -120,36 +124,42 @@ public:
 		if(!this->death){
 		//탱크 출력
 		glm::mat4 TANK = glm::mat4(1.0f);
-		TANK = glm::translate(TANK, glm::vec3(this->x, 0.1f, this->z));
+		TANK = glm::translate(TANK, glm::vec3(this->x, 0.0f, this->z));
 		TANK = glm::rotate(TANK, glm::radians(this->tankR + 90.0f), glm::vec3(0, 1, 0));
-		TANK = glm::scale(TANK, glm::vec3(this->size, this->size, this->size));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TANK));
-		glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
+		glUniform3f(objColorLocation, 0.7, 0.7, 0.7);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, this->body_texture);
 		glBindVertexArray(VAO[0]);
-		glDrawArrays(GL_TRIANGLES, 0, this->obj);
+		glDrawArrays(GL_TRIANGLES, 0, this->obj_body);
 		
 		//머리 출력
 		glm::mat4 HEAD = glm::mat4(1.0f);
-		HEAD = glm::translate(HEAD, glm::vec3(this->x, 0.2f, this->z));
+		if (this->head_frame >= 3) {
+			this->head_frame = 0;
+			if (this->heady > 0.0f) this->heady = 0.0f;
+			else this->heady = 0.03f;
+		}
+		this->head_frame++;
+		HEAD = glm::translate(HEAD, glm::vec3(this->x, this->heady, this->z));
 		HEAD = glm::rotate(HEAD, glm::radians(this->headR + this->tankR + 90.0f), glm::vec3(0, 1, 0));
-		HEAD = glm::scale(HEAD, glm::vec3(0.01f, 0.01f, 0.01f));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(HEAD));
 		glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, this->body_texture);
-		glBindVertexArray(VAO[0]);
-		glDrawArrays(GL_TRIANGLES, 0, this->obj);
+		glBindTexture(GL_TEXTURE_2D, this->head_texture);
+		glBindVertexArray(VAO[2]);
+		glDrawArrays(GL_TRIANGLES, 0, this->obj_head);
 
-		////발사구 출력
-		//glm::mat4 MOUSE = glm::mat4(1.0f);
-		//MOUSE = HEAD;
-		//MOUSE = glm::translate(MOUSE, glm::vec3(0.2f, 0, 0));
-		//glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(MOUSE));
-		//glUniform3f(objColorLocation, 0.0, 1.0, 1.0);
-		//glBindVertexArray(VAO[0]);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
+		//발사구 출력
+		glm::mat4 CANNON = glm::mat4(1.0f);
+		CANNON = HEAD;
+		CANNON = glm::translate(CANNON, glm::vec3(0.0f, 0.7f, 0));
+		//포신 각도 변환 들어가야함
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(CANNON));
+		glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
+		glBindTexture(GL_TEXTURE_2D, this->cannon_texture);
+		glBindVertexArray(VAO[3]);
+		glDrawArrays(GL_TRIANGLES, 0, this->obj_cannon);
 
 		//총알 출력
 		for (int i = 0; i < 10; i++) this->bullet[i]->draw(VAO[0], modelLocation, objColorLocation);
@@ -254,12 +264,12 @@ public:
 	void spawn(int level) { //소환
 		this->active = 1;
 		while (-1) {
-			int x = rand() % 100;
-			int z = rand() % 100;
+			int x = rand() % 50;
+			int z = rand() % 50;
 			if (map[z][x] == 0) {
-				this->x = (x - 50) * 0.1f;
+				this->x = (x - 25) + 0.5f;
 				this->y = 0.1f;
-				this->z = (z - 50) * 0.1f;
+				this->z = (z - 25) + 0.5f;
 				break;
 			}
 		}
@@ -271,7 +281,6 @@ public:
 			glm::mat4 RIFLE = glm::mat4(1.0f);
 			RIFLE = glm::translate(RIFLE, glm::vec3(this->x, this->y, this->z));
 			RIFLE = glm::rotate(RIFLE, -this->rotate + 90.0f, glm::vec3(0,1,0));
-			RIFLE = glm::scale(RIFLE, glm::vec3(this->size, this->size, this->size));
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(RIFLE));
 			glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
 			//glActiveTexture(GL_TEXTURE0);
@@ -326,22 +335,38 @@ public:
 	}
 };
 
+GLuint block_VAO[2];
+GLuint block_VBO[2][3];
+unsigned int block_texture; //장애물 텍스처는 한 파일로 처리했음
+int block_obj[2];
 class Block {
 public:
 	float x, y, z;
-	float size = 0.1;
-	
+	float blocky = 0.0f;
+	int shape = 0; // 장애물 사이즈 1:1x1 2:2x1 3:1x2
+
 	void getPos(float x, float y, float z) {
 		this->x = x; this->y = y; this->z = z;
 	}
+
 	void draw(unsigned int modelLocation, unsigned int objColorLocation) {
+		if (this->shape == 3)
+			blocky = -90.0f;
 		glm::mat4 BLOCK = glm::mat4(1.0f);
 		BLOCK = glm::translate(BLOCK, glm::vec3(this->x, this->y, this->z));
-		BLOCK = glm::scale(BLOCK, glm::vec3(this->size, this->size, this->size));
+		BLOCK = glm::rotate(BLOCK, (GLfloat)glm::radians(blocky), glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(BLOCK));
-		glUniform3f(objColorLocation, 0.0, 0.0, 0.7);
-		glBindVertexArray(VAO[1]);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glUniform3f(objColorLocation, 0.7, 0.7, 0.7);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, block_texture);
+		if (this->shape == 1) {
+			glBindVertexArray(block_VAO[0]);
+			glDrawArrays(GL_TRIANGLES, 0, block_obj[0]);
+		}
+		else {
+			glBindVertexArray(block_VAO[1]);
+			glDrawArrays(GL_TRIANGLES, 0, block_obj[1]);
+		}
 	}
 };
 
@@ -370,12 +395,12 @@ public:
 		this->onfoot = 0;
 		this->active = 1;
 		while (-1) {
-			int x = rand() % 100;
-			int z = rand() % 100;
+			int x = rand() % 50;
+			int z = rand() % 50;
 			if (map[z][x] == 0) {
-				this->x = (x - 50) * 0.1f;
-				this->y = 5.0f;
-				this->z = (z - 50) * 0.1f;
+				this->x = (x - 25) + 0.5f;
+				this->y = 5.10f;
+				this->z = (z - 25) + 0.5f;
 				break;
 			}
 		}
@@ -403,3 +428,39 @@ Block block[BLOCK_AMOUNT];
 RifleMan rifle[RIFLE_AMOUNT];
 
 Item item[ITEM_AMOUNT];
+
+void setBlock() {
+
+	for (int i = 0; i < BLOCK_AMOUNT; i++) {
+		while (1) {
+			block[i].shape = (rand() % 3) + 1;
+			if (block[i].shape == 1) {
+				int x = rand() % 50;
+				int z = rand() % 50;
+				if (!map[z][x]) {
+					block[i].x = (x - 25) + 0.5f;
+					block[i].y = 0.0f;
+					block[i].z = (z - 25) + 0.5f;
+					map[z][x] = true;
+					break;
+				}
+			}
+			else if (block[i].shape == 2 || block[i].shape == 3) {
+				int x = rand() % 49;
+				int z = rand() % 49;
+				if (!map[z][x]) {
+					block[i].x = (x - 25) + 0.5f;
+					block[i].y = 0.0f;
+					block[i].z = (z - 25) + 0.5f;
+
+					map[z][x] = true;
+					if (block[i].shape == 2)
+						map[z][x + 1] = true;
+					else if (block[i].shape == 3)
+						map[z + 1][x] = true;
+					break;
+				}
+			}
+		}
+	}
+}

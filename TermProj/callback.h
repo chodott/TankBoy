@@ -45,7 +45,7 @@ GLvoid drawScene(GLvoid)
 	unsigned int objColorLocation = glGetUniformLocation(s_program[0], "objectColor");
 
 	//뷰 변환
-	glm::vec3 cameraPos = glm::vec3(tank.x, 5.0f, tank.z + 10.0f); //--- 카메라 위치
+	glm::vec3 cameraPos = glm::vec3(tank.x + 3.0f, 5.0f, tank.z + 3.0f); //--- 카메라 위치
 	glm::vec3 cameraTarget = glm::vec3(tank.x, 0.5f, tank.z);
 	glm::vec3 cameraDirection = glm::normalize(-cameraPos + cameraTarget); //--- 카메라 바라보는 방향
 	glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f); //--- 카메라 위쪽 방향
@@ -163,14 +163,14 @@ GLvoid InitBuffer()
 	glEnableVertexAttribArray(1);
 
 	//탱크(임의)
-	tank.obj = loadObj("tank_body.obj");
-	cout << "탱크 삼각형 수" << tank.obj << endl;
+	tank.obj_body = loadObj("tank_body.obj");
+	cout << "탱크 삼각형 수" << tank.obj_body << endl;
 	 
-	glGenBuffers(2, tank.VBO_pos);
-	glGenBuffers(2, tank.VBO_nor);
-	glGenBuffers(2, tank.VBO_tex);
+	glGenBuffers(4, tank.VBO_pos);
+	glGenBuffers(4, tank.VBO_nor);
+	glGenBuffers(4, tank.VBO_tex);
 
-	glGenVertexArrays(2, tank.VAO);
+	glGenVertexArrays(4, tank.VAO);
 	glBindVertexArray(tank.VAO[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, tank.VBO_pos[0]);
 	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
@@ -201,10 +201,51 @@ GLvoid InitBuffer()
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	//라이플맨
+	//탱크 머리
+	tank.obj_head = loadObj("tank_head.obj");
+
+	glBindVertexArray(tank.VAO[2]);
+	glBindBuffer(GL_ARRAY_BUFFER, tank.VBO_pos[2]);
+	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
 	outvertex.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, tank.VBO_nor[2]);
+	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
 	outnormal.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, tank.VBO_tex[2]);
+	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glEnableVertexAttribArray(2);
 	outuv.clear();
+
+	//탱크 포신
+	tank.obj_cannon = loadObj("tank_cannon.obj");
+
+	glBindVertexArray(tank.VAO[3]);
+	glBindBuffer(GL_ARRAY_BUFFER, tank.VBO_pos[3]);
+	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
+	outvertex.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, tank.VBO_nor[3]);
+	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+	outnormal.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, tank.VBO_tex[3]);
+	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glEnableVertexAttribArray(2);
+	outuv.clear();
+
+	//라이플맨
 	rifle_obj = loadObj("rifle.obj");
 	cout << "라이플맨 삼각형 수" << rifle_obj << endl;
 
@@ -217,16 +258,65 @@ GLvoid InitBuffer()
 	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(0);
+	outvertex.clear();
 
 	glBindBuffer(GL_ARRAY_BUFFER, rifle_VBO[1]);
 	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(1);
+	outnormal.clear();
 
 	glBindBuffer(GL_ARRAY_BUFFER, rifle_VBO[2]);
 	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
 	glEnableVertexAttribArray(2);
+	outuv.clear();
+
+	block_obj[0] = loadObj("obsta1x1.obj");
+
+	glGenVertexArrays(2, block_VAO);
+
+	glGenBuffers(3, block_VBO[0]); //1x1사이즈 장애물
+	glBindVertexArray(block_VAO[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, block_VBO[0][0]);
+	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
+	outvertex.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, block_VBO[0][1]);
+	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+	outnormal.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, block_VBO[0][2]);
+	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glEnableVertexAttribArray(2);
+	outuv.clear();
+
+	block_obj[1] = loadObj("obsta2x1.obj");
+
+	glGenBuffers(3, block_VBO[1]); //2x1사이즈 장애물
+	glBindVertexArray(block_VAO[1]);
+	glBindBuffer(GL_ARRAY_BUFFER, block_VBO[1][0]);
+	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
+	outvertex.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, block_VBO[1][1]);
+	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+	outnormal.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, block_VBO[1][2]);
+	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glEnableVertexAttribArray(2);
+	outuv.clear();
 
 	glEnable(GL_DEPTH_TEST);
 }
@@ -259,7 +349,39 @@ GLvoid InitTexture() { //여기 평면이랑 탱크 순서 바꿔뒀어열
 	unsigned char* data1 = stbi_load("tank_body_diffuse.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data1);
 
-	
+	glGenTextures(1, &tank.head_texture);
+
+	glBindTexture(GL_TEXTURE_2D, tank.head_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	unsigned char* data2 = stbi_load("tank_head_diffuse.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data2);
+
+	glGenTextures(1, &tank.cannon_texture);
+
+	glBindTexture(GL_TEXTURE_2D, tank.cannon_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	unsigned char* data3 = stbi_load("tank_cannon_diffuse.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data3);
+
+	glGenTextures(1, &block_texture);
+
+	glBindTexture(GL_TEXTURE_2D, block_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	unsigned char* data4 = stbi_load("obsta_diffuse.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data4);
+
 	stbi_image_free(data0);
 	stbi_image_free(data1);
+	stbi_image_free(data2);
+	stbi_image_free(data3);
+	stbi_image_free(data4);
 }
