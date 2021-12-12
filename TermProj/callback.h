@@ -49,7 +49,7 @@ GLvoid drawScene(GLvoid)
 	unsigned int objColorLocation = glGetUniformLocation(s_program[0], "objectColor");
 
 	//뷰 변환
-	glm::vec3 cameraPos = glm::vec3(tank.x, 5.0f, tank.z + 5.0f); //--- 카메라 위치
+	glm::vec3 cameraPos = glm::vec3(tank.x, 5.0f, tank.z + 10.0f); //--- 카메라 위치
 	glm::vec3 cameraTarget = glm::vec3(tank.x, 0.5f, tank.z);
 	glm::vec3 cameraDirection = glm::normalize(-cameraPos + cameraTarget); //--- 카메라 바라보는 방향
 	glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f); //--- 카메라 위쪽 방향
@@ -139,10 +139,7 @@ GLvoid Timer(int value)
 }
 
 GLvoid InitBuffer()
-{
-	
-	tank.obj = loadObj("tank_body.obj");
-	rifle_obj = loadObj("rifle.obj");
+{	
 	glGenVertexArrays(4, VAO);
 	glGenBuffers(4, VBO_position);
 	glGenBuffers(4, VBO_normal);
@@ -170,25 +167,32 @@ GLvoid InitBuffer()
 	glEnableVertexAttribArray(1);
 
 	//탱크(임의)
-	glGenBuffers(4, tank.VBO_pos);
-	glGenBuffers(4, tank.VBO_nor);
-	glGenBuffers(4, tank.VBO_tex);
+	tank.obj = loadObj("tank_body.obj");
+	cout << "탱크 삼각형 수" << tank.obj << endl;
+	 
+	glGenBuffers(2, tank.VBO_pos);
+	glGenBuffers(2, tank.VBO_nor);
+	glGenBuffers(2, tank.VBO_tex);
+
 	glGenVertexArrays(2, tank.VAO);
 	glBindVertexArray(tank.VAO[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, tank.VBO_pos[0]);
 	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(0);
+	outvertex.clear();
 
 	glBindBuffer(GL_ARRAY_BUFFER, tank.VBO_nor[0]);
 	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(1);
+	outnormal.clear();
 
 	glBindBuffer(GL_ARRAY_BUFFER, tank.VBO_tex[0]);
 	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
 	glEnableVertexAttribArray(2);
+	outuv.clear();
 
 	//포물선 점
 	glBindVertexArray(tank.VAO[1]);
@@ -202,9 +206,17 @@ GLvoid InitBuffer()
 	glEnableVertexAttribArray(1);
 
 	//라이플맨
+	outvertex.clear();
+	outnormal.clear();
+	outuv.clear();
+	rifle_obj = loadObj("rifle.obj");
+	cout << "라이플맨 삼각형 수" << rifle_obj << endl;
+
 	glGenBuffers(3, rifle_VBO);
+
 	glGenVertexArrays(1, &rifle_VAO);
 	glBindVertexArray(rifle_VAO);
+
 	glBindBuffer(GL_ARRAY_BUFFER, rifle_VBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
@@ -221,7 +233,6 @@ GLvoid InitBuffer()
 	glEnableVertexAttribArray(2);
 
 	glEnable(GL_DEPTH_TEST);
-
 }
 
 GLvoid InitTexture() { //여기 평면이랑 탱크 순서 바꿔뒀어열

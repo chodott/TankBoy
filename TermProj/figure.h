@@ -77,8 +77,9 @@ public:
 			this->x = this->point[tic].x;
 			this->y = this->point[tic].y;
 			this->z = this->point[tic].z;
-			this->tic += 2;
-			if (this->tic == 100) { this->active = 0; }
+			this->tic += 3;
+		if (this->tic == 100)  this->active = 0;
+		else if (this->point[tic].y <= 0) this->active = 0;
 		}
 	}
 
@@ -173,7 +174,7 @@ public:
 		for (int i = 0; i < 10; i++) this->bullet[i]->draw(VAO[0], modelLocation, objColorLocation);
 
 		//포물선 출력
-		for (int i = 0; i < 100; i += 10) {
+		for (int i = 0; i < 150; i += 9) {
 			glm::mat4 POINT = glm::mat4(1.0f);
 			POINT = glm::translate(POINT, glm::vec3(this->point[i].x, this->point[i].y, this->point[i].z));
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(POINT));
@@ -215,7 +216,7 @@ public:
 		for (int i = 0; i < 100; i++) {
 			this->point[i].x = this->x + cos(-(this->tankR + this->headR) * PI) * (float)(gap * i);
 			this->point[i].z = this->z + sin(-(this->tankR + this->headR) * PI)* (float)(gap * i);
-			this->point[i].y = height_accel * i;
+			this->point[i].y = 0.1f + height_accel * i;
 			height_accel -= gravity;
 		}
 	}
@@ -249,11 +250,11 @@ class RifleMan {
 public:
 	time_t attack_timer = 0;
 	Bullet bullet[3];
-	float speed = 0.001;
+	float speed = 0.01;
 	float x, y, z;
 	float rotate = 0;
 	float range = 2.0f;
-	float size = 0.1f;
+	float size = 1.0f;
 	int reload = 1;
 	int hp = 1;
 	int power = 0;
@@ -279,7 +280,7 @@ public:
 		if (this->active) {
 			glm::mat4 RIFLE = glm::mat4(1.0f);
 			RIFLE = glm::translate(RIFLE, glm::vec3(this->x, this->y, this->z));
-			RIFLE = glm::rotate(RIFLE, -this->rotate, glm::vec3(0,1,0));
+			RIFLE = glm::rotate(RIFLE, -this->rotate + 90.0f, glm::vec3(0,1,0));
 			RIFLE = glm::scale(RIFLE, glm::vec3(this->size, this->size, this->size));
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(RIFLE));
 			glUniform3f(objColorLocation, 1.0, 1.0, 1.0);

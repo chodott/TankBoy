@@ -37,7 +37,7 @@ void collide_check() {
 		}
 
 		for (int j = 0; j < 10; j++) { //라이플맨 // 플레이어 탄환
-			if (rifle[i].collide(tank.bullet[j]->x, tank.bullet[j]->y, tank.bullet[j]->z, tank.bullet[j]->size) && tank.bullet[j]->active) {
+			if (rifle[i].collide(tank.bullet[j]->x, tank.bullet[j]->y, tank.bullet[j]->z, tank.bullet[j]->size) && tank.bullet[j]->active && rifle[i].active) {
 				rifle[i].hit();
 				tank.bullet[j]->active = 0;
 			}

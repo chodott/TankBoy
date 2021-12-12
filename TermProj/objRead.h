@@ -1,7 +1,3 @@
-std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
-std::vector< glm::vec3 > temp_vertices;
-std::vector< glm::vec2 > temp_uvs;
-std::vector< glm::vec3 > temp_normals;
 std::vector< glm::vec3 > outvertex, outnormal;
 std::vector< glm::vec2 > outuv;
 
@@ -19,6 +15,11 @@ int loadObj_normalize_center(const char* filename);
 
 int loadObj(const char* filename)
 {
+	std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
+	std::vector< glm::vec3 > temp_vertices;
+	std::vector< glm::vec2 > temp_uvs;
+	std::vector< glm::vec3 > temp_normals;
+
 	FILE* objFile;
 
 	fopen_s(&objFile, filename, "rb");
@@ -126,6 +127,11 @@ int loadObj(const char* filename)
 
 int loadObj_normalize_center (const char* filename)
 {
+	std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
+	std::vector< glm::vec3 > temp_vertices;
+	std::vector< glm::vec2 > temp_uvs;
+	std::vector< glm::vec3 > temp_normals;
+
 	FILE* objFile;
 
 	fopen_s(&objFile, filename, "rb");
