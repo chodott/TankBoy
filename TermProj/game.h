@@ -65,6 +65,16 @@ void collide_check() {
 			item[i].active = 0;
 		}
 	}
+
+	//플레이어 + 장애물
+	for (int i = 0; i < BLOCK_AMOUNT; i++) {
+		if (tank.block_collide(block[i].x, block[i].y, block[i].z,block[i].shape)) {
+			cout << block[i].shape;
+			tank.x = tank.x - cos(-tank.tankR * PI) * tank.tankSpeed;
+			tank.z = tank.z - sin(-tank.tankR * PI) * tank.tankSpeed;
+			tank.moving = 0;
+		}
+	}
 }
 
 void update_level(time_t start) {

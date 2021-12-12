@@ -236,7 +236,45 @@ public:
 
 	bool collide(float extraX, float extraY, float extraZ, float extraSize) {
 		float distance = sqrt((this->x - extraX) * (this->x - extraX) + (this->y - extraY) * (this->y - extraY) + (this->z - extraZ) * (this->z - extraZ));
-		if (extraSize + this->size >= distance) return true;
+		if (extraSize * sqrt(2) + this->size * sqrt(2) >= distance) return true;
+		return false;
+	}
+	
+	bool block_collide(float extraX, float extraY, float extraZ, int shape) {
+		// 장애물 사이즈 1:1x1 2:2x1 3:1x2
+		float left, right, top, bottom;
+		float extra_left = 0, extra_right =0, extra_top = 0, extra_bottom = 0;
+		left = this->x - this->size / 2; 
+		right = this->x + this->size / 2; 
+		top = this->z + this->size / 2; 
+		bottom = this->z - this->size / 2;
+		switch (shape) {
+
+		case 1:
+			extra_left = extraX - 0.5f; 
+			extra_right = extraX + 0.5f; 
+			extra_top = extraZ + 0.5f; 
+			extra_bottom = extraZ - 0.5f;
+			break;
+
+		case 2:
+			extra_left = extraX - 0.5f;
+			extra_right = extraX + 1.5f;
+			extra_top = extraZ + 0.5f;
+			extra_bottom = extraZ - 0.5f;
+			break;
+
+		case 3:
+			extra_left = extraX - 0.5f;
+			extra_right = extraX + 0.5f;
+			extra_top = extraZ + 1.5f;
+			extra_bottom = extraZ - 0.5f;
+			break;
+		}
+		if (left <= extra_right && left >= extra_left && top <= extra_top && top >= extra_bottom) return true;
+		if (right <= extra_right && right >= extra_left && top <= extra_top && top >= extra_bottom) return true;
+		if (left <= extra_right && left >= extra_left && bottom <= extra_top && bottom >= extra_bottom) return true;
+		if (right <= extra_right && right >= extra_left && bottom <= extra_top && bottom >= extra_bottom) return true;
 		return false;
 	}
 };
@@ -313,12 +351,15 @@ public:
 	void hit() {
 		if (this->active) {
 			this->hp -= 1;
-			if (this->hp <= 0) this->active = 0;
+			if (this->hp <= 0) { 
+				this->active = 0; 
+			}
 		}
 	}
 
 	void attack() {
 		if (time(NULL) - this->attack_timer > this->reload) {
+			PlaySound(TEXT("explosion.wav"), NULL, SND_ASYNC | SND_NOSTOP);
 			this->attack_timer = time(NULL);
 			this->bullet[0].active = 1;
 			this->bullet[0].x = this->x;
@@ -330,7 +371,7 @@ public:
 
 	bool collide(float extraX, float extraY, float extraZ,  float extraSize) {
 		float distance = sqrt((this->x - extraX) * (this->x - extraX) + (this->y - extraY)* (this->y-extraY) +(this->z - extraZ) * (this->z - extraZ));
-		if (extraSize + this->size >= distance) return true;
+		if (extraSize * sqrt(2) + this->size * sqrt(2) >= distance) return true;
 		return false;
 	}
 };

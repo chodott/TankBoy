@@ -13,7 +13,7 @@ void main(int argc, char** argv)
 	glutCreateWindow("Example1");
 	srand(time(NULL));
 	//GLEW 초기화하기
-	PlaySound(TEXT("background.wav"), NULL, SND_ASYNC | SND_LOOP);
+	PlaySound(TEXT("background.wav"), NULL, SND_ASYNC | SND_LOOP|SND_NOSTOP);
 	for (int i = 0; i < 256; i++) keyStates[i] = false; //키 값 초기화
 	start = time(NULL); //시작 시간 설정
 	glewExperimental = GL_TRUE;
