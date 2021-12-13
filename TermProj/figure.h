@@ -41,6 +41,14 @@ public:
 	float x, y, z;
 };
 
+GLuint bullet_enemy_VAO; //적 탄환
+GLuint bullet_enemy_VBO[3];
+int bullet_enemy_obj;
+GLuint bullet_ally_VAO; //내 탄환
+GLuint bullet_ally_VBO[3];
+int bullet_ally_obj;
+unsigned int rifle_texture; //소총병의 텍스처를 탄환도 공유해서 여기다적었엉
+
 //총알
 class Bullet {
 public:
@@ -71,16 +79,17 @@ public:
 		}
 	}
 
-	void draw(GLuint VAO, unsigned int modelLocation, unsigned int objColorLocation) {
+	void draw(GLuint VAO, int triangles, unsigned int texture, unsigned int modelLocation, unsigned int objColorLocation) {
 		if (this->active) {
 			glm::mat4 TANKBULLET = glm::mat4(1.0f);
 			TANKBULLET = glm::translate(TANKBULLET, glm::vec3(this->x, this->y, this->z));
 			TANKBULLET = glm::rotate(TANKBULLET, glm::radians(this->r), glm::vec3(0, 1, 0));
-			TANKBULLET = glm::scale(TANKBULLET, glm::vec3(this->size, this->size, this->size));
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TANKBULLET));
-			glUniform3f(objColorLocation, 0.0, 0.0, 0.0);
+			glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, texture);
 			glBindVertexArray(VAO);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glDrawArrays(GL_TRIANGLES, 0, triangles);
 		}
 		else return;
 	}
@@ -200,7 +209,7 @@ public:
 		glDrawArrays(GL_TRIANGLES, 0, this->obj_cannon);
 
 		//총알 출력
-		for (int i = 0; i < 10; i++) this->bullet[i]->draw(VAO[0], modelLocation, objColorLocation);
+		for (int i = 0; i < 10; i++) this->bullet[i]->draw(bullet_ally_VAO, bullet_ally_obj, rifle_texture, modelLocation, objColorLocation);
 
 		//포물선 출력
 		for (int i = 0; i < 100; i += 9) {
@@ -344,7 +353,6 @@ public:
 //병사
 GLuint rifle_VAO;
 GLuint rifle_VBO[3];
-unsigned int rifle_texture;
 int rifle_obj;
 class RifleMan {
 public:
@@ -383,12 +391,12 @@ public:
 			RIFLE = glm::rotate(RIFLE, -this->rotate + 90.0f, glm::vec3(0,1,0));
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(RIFLE));
 			glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
-			//glActiveTexture(GL_TEXTURE0);
-			//glBindTexture(GL_TEXTURE_2D, this->body_texture);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, rifle_texture);
 			glBindVertexArray(rifle_VAO);
 			glDrawArrays(GL_TRIANGLES, 0, rifle_obj);
 		}
-		this->bullet[0].draw(rifle_VAO, modelLocation, objColorLocation);
+		this->bullet[0].draw(bullet_enemy_VAO, bullet_enemy_obj, rifle_texture, modelLocation, objColorLocation);
 	}
 
 	void move(float tankX, float tankZ) {
@@ -535,6 +543,10 @@ RifleMan rifle[RIFLE_AMOUNT];
 Item item[ITEM_AMOUNT];
 
 void setBlock() {
+	map[24][24] = true;
+	map[24][25] = true;
+	map[25][24] = true;
+	map[25][25] = true;
 
 	for (int i = 0; i < BLOCK_AMOUNT; i++) {
 		while (1) {

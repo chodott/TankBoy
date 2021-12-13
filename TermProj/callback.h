@@ -335,6 +335,56 @@ GLvoid InitBuffer()
 	glEnableVertexAttribArray(2);
 	outuv.clear();
 
+	bullet_enemy_obj = loadObj("bullet_enemy.obj");
+
+	glGenBuffers(3, bullet_enemy_VBO);
+
+	glGenVertexArrays(1, &bullet_enemy_VAO);
+	glBindVertexArray(bullet_enemy_VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, bullet_enemy_VBO[0]);
+	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
+	outvertex.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, bullet_enemy_VBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+	outnormal.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, bullet_enemy_VBO[2]);
+	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glEnableVertexAttribArray(2);
+	outuv.clear();
+
+	bullet_ally_obj = loadObj("bullet_ally.obj");
+
+	glGenBuffers(3, bullet_ally_VBO);
+
+	glGenVertexArrays(1, &bullet_ally_VAO);
+	glBindVertexArray(bullet_ally_VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, bullet_ally_VBO[0]);
+	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
+	outvertex.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, bullet_ally_VBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+	outnormal.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, bullet_ally_VBO[2]);
+	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glEnableVertexAttribArray(2);
+	outuv.clear();
+
 	glEnable(GL_DEPTH_TEST);
 }
 
@@ -406,10 +456,21 @@ GLvoid InitTexture() { //¿©±â Æò¸éÀÌ¶û ÅÊÅ© ¼ø¼­ ¹Ù²ãµ×¾î¿­
 	unsigned char* data5 = stbi_load("room_wall.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data5);
 
+	glGenTextures(1, &rifle_texture); //¼ÒÃÑº´, ÅºÈ¯ »ö
+
+	glBindTexture(GL_TEXTURE_2D, rifle_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	unsigned char* data6 = stbi_load("rifle.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data6);
+
 	stbi_image_free(data0);
 	stbi_image_free(data1);
 	stbi_image_free(data2);
 	stbi_image_free(data3);
 	stbi_image_free(data4);
 	stbi_image_free(data5);
+	stbi_image_free(data6);
 }
