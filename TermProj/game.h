@@ -28,6 +28,9 @@ void update() {
 			}
 		}
 	}
+	//바주카병 스폰
+	
+
 	//아이템 스폰
 	if ((time(NULL) - start) % 7 == 0 && (time(NULL) - start) != check) {
 		for (int i = 0; i < ITEM_AMOUNT; i++) {
@@ -44,16 +47,22 @@ void update() {
 }
 
 void collide_check() {
-	for (int i = 0; i < RIFLE_AMOUNT; i++) { //플레이어 / 라이플 탄환
+	for (int i = 0; i < RIFLE_AMOUNT; i++) { //플레이어 + 라이플 탄환
 		if (tank.collide(rifle[i].bullet[0].x, rifle[i].bullet[0].y, rifle[i].bullet[0].z, rifle[i].bullet[0].size) && rifle[i].bullet[0].active) {
 			tank.hit();
 			rifle[i].bullet[0].active = 0;
 		}
 
-		for (int j = 0; j < 10; j++) { //라이플맨 // 플레이어 탄환
+		for (int j = 0; j < 10; j++) { //라이플맨 + 플레이어 탄환
 			if (rifle[i].collide(tank.bullet[j]->x, tank.bullet[j]->y, tank.bullet[j]->z, tank.bullet[j]->size) && tank.bullet[j]->active && rifle[i].active) {
 				rifle[i].hit();
 				tank.bullet[j]->active = 0;
+			}
+		}
+
+		for (int j = 0; j < BLOCK_AMOUNT; j++) { // 라이플맨 탄환 + 장애물
+			if (rifle[i].bullet[0].block_collide(block[i].x, block[i].y, block[i].z, block[i].shape)) {
+				rifle[i].bullet[0].active = 0;
 			}
 		}
 	}
@@ -73,6 +82,11 @@ void collide_check() {
 			tank.x = tank.x - cos(-tank.tankR * PI) * tank.tankSpeed;
 			tank.z = tank.z - sin(-tank.tankR * PI) * tank.tankSpeed;
 			tank.moving = 0;
+		}
+		for (int j = 0; j < 10; j++) { //플레이어 탄환 + 장애물
+			if (tank.bullet[j]->block_collide(block[i].x, block[i].y, block[i].z, block[i].shape)) {
+				tank.bullet[j]->active = 0;
+			}
 		}
 	}
 }

@@ -85,7 +85,43 @@ public:
 		else return;
 	}
 
-	
+	bool block_collide(float extraX, float extraY, float extraZ, int shape) {
+		// 장애물 사이즈 1:1x1 2:2x1 3:1x2
+		float left, right, top, bottom;
+		float extra_left = 0, extra_right = 0, extra_top = 0, extra_bottom = 0;
+		left = this->x - this->size / 2;
+		right = this->x + this->size / 2;
+		top = this->z + this->size / 2;
+		bottom = this->z - this->size / 2;
+		switch (shape) {
+
+		case 1:
+			extra_left = extraX - 0.5f;
+			extra_right = extraX + 0.5f;
+			extra_top = extraZ + 0.5f;
+			extra_bottom = extraZ - 0.5f;
+			break;
+
+		case 2:
+			extra_left = extraX - 0.5f;
+			extra_right = extraX + 1.5f;
+			extra_top = extraZ + 0.5f;
+			extra_bottom = extraZ - 0.5f;
+			break;
+
+		case 3:
+			extra_left = extraX - 0.5f;
+			extra_right = extraX + 0.5f;
+			extra_top = extraZ + 1.5f;
+			extra_bottom = extraZ - 0.5f;
+			break;
+		}
+		if (left <= extra_right && left >= extra_left && top <= extra_top && top >= extra_bottom) return true;
+		if (right <= extra_right && right >= extra_left && top <= extra_top && top >= extra_bottom) return true;
+		if (left <= extra_right && left >= extra_left && bottom <= extra_top && bottom >= extra_bottom) return true;
+		if (right <= extra_right && right >= extra_left && bottom <= extra_top && bottom >= extra_bottom) return true;
+		return false;
+	}
 };
 
 //탱크
@@ -104,6 +140,7 @@ public:
 	float minRange = 2.0f;
 	float range = 4.3f;
 	float size = 1.0f;
+	float bulletSize = 0.1f;
 	float x, y, z;
 	unsigned int body_texture, head_texture, cannon_texture;
 	int hp = 5;
@@ -113,6 +150,7 @@ public:
 	bool death = 0;
 	bool moving = 0;
 	bool push = 0;
+	bool supermode = 1;
 	
 	Tank() : x{ 0 }, y{ 0 }, z{ 0 } { //탱크 생성자
 		for (int i = 0; i < 10; i++) {
@@ -220,7 +258,27 @@ public:
 		this->bullet[this->bulletCnt]->tic = 0; 
 		for (int i = 0; i < 100; i++) this->bullet[bulletCnt]->point[i] = this->point[i];
 		this->bullet[this->bulletCnt]->r = this->headR + this->tankR;
-		this->bulletCnt = (this->bulletCnt + 1) % 10;
+		this->bulletCnt = (this->bulletCnt + 1) % 9;
+
+		if (this->supermode) {
+			float gap = this->range / 100.0f;
+			this->bullet[this->bulletCnt]->active = 1;
+			this->bullet[this->bulletCnt]->tic = 0;
+			this->bullet[this->bulletCnt + 1]->active = 1;
+			this->bullet[this->bulletCnt + 1]->tic = 0;
+			for (int i = 0; i < 100; i++) {
+				this->bullet[bulletCnt]->point[i].x = this->x + cos(-(this->tankR + this->headR - 15) * PI) * (float)(gap * i);
+				this->bullet[bulletCnt]->point[i].y = this->point[i].y;
+				this->bullet[bulletCnt]->point[i].z = this->z + sin(-(this->tankR + this->headR - 15) * PI) * (float)(gap * i);
+				this->bullet[this->bulletCnt]->r = this->headR + this->tankR;
+				this->bullet[this->bulletCnt]->size = this->bulletSize;
+				this->bullet[bulletCnt + 1]->point[i].x = this->x + cos(-(this->tankR + this->headR + 15) * PI) * (float)(gap * i);
+				this->bullet[bulletCnt + 1]->point[i].y = this->point[i].y;
+				this->bullet[bulletCnt + 1]->point[i].z = this->z + sin(-(this->tankR + this->headR + 15) * PI) * (float)(gap * i);
+				this->bullet[this->bulletCnt + 1]->r = this->headR + this->tankR;
+				this->bullet[this->bulletCnt + 1]->size = this->bulletSize;
+			}
+		}
 	}
 
 	void hit() {
@@ -230,10 +288,11 @@ public:
 
 	void upgrade(int skill) {
 		switch (skill) {
-		case 0: this->size += 0.1f; break;
-		case 1: break;
-		case 2: break;
-		case 3: break;
+		case 0: this->bulletSize += 0.1f; break;
+		case 1: this->size += 0.1f; break;
+		case 2: this->maxRange + 0.1f; break;
+		case 3: this->hp += 5; break;
+		case 4: break;
 		}
 	}
 
@@ -356,6 +415,7 @@ public:
 			this->hp -= 1;
 			if (this->hp <= 0) { 
 				this->active = 0; 
+				playingKill();
 			}
 		}
 	}
@@ -445,6 +505,7 @@ public:
 				this->x = (x - 25) + 0.5f;
 				this->y = 5.10f;
 				this->z = (z - 25) + 0.5f;
+				this->skill = rand() % 3;
 				break;
 			}
 		}
