@@ -150,8 +150,11 @@ public:
 	float range = 4.3f;
 	float size = 1.0f;
 	float bulletSize = 0.1f;
+	float reload = 0.5f;
 	float x, y, z;
 	unsigned int body_texture, head_texture, cannon_texture;
+	int timer = 0;
+	int maxhp = 30;
 	int hp = 5;
 	int bulletCnt = 0;
 	int obj_body = 0, obj_head = 0, obj_cannon = 0;
@@ -257,35 +260,38 @@ public:
 		for (int i = 0; i < 100; i++) {
 			this->point[i].x = this->x + cos(-(this->tankR + this->headR) * PI) * (float)(gap * i);
 			this->point[i].z = this->z + sin(-(this->tankR + this->headR) * PI)* (float)(gap * i);
-			this->point[i].y = 0.1f + height_accel * i;
+			this->point[i].y = 0.7f + height_accel * i;
 			height_accel -= gravity;
 		}
 	}
 
 	void attack() { //공격 함수
-		this->bullet[this->bulletCnt]->active = 1;
-		this->bullet[this->bulletCnt]->tic = 0; 
-		for (int i = 0; i < 100; i++) this->bullet[bulletCnt]->point[i] = this->point[i];
-		this->bullet[this->bulletCnt]->r = this->headR + this->tankR;
-		this->bulletCnt = (this->bulletCnt + 1) % 9;
-
-		if (this->supermode) {
-			float gap = this->range / 100.0f;
+		if (time(NULL) - this->timer > this->reload) {
+			this->timer = time(NULL);
 			this->bullet[this->bulletCnt]->active = 1;
 			this->bullet[this->bulletCnt]->tic = 0;
-			this->bullet[this->bulletCnt + 1]->active = 1;
-			this->bullet[this->bulletCnt + 1]->tic = 0;
-			for (int i = 0; i < 100; i++) {
-				this->bullet[bulletCnt]->point[i].x = this->x + cos(-(this->tankR + this->headR - 15) * PI) * (float)(gap * i);
-				this->bullet[bulletCnt]->point[i].y = this->point[i].y;
-				this->bullet[bulletCnt]->point[i].z = this->z + sin(-(this->tankR + this->headR - 15) * PI) * (float)(gap * i);
-				this->bullet[this->bulletCnt]->r = this->headR + this->tankR;
-				this->bullet[this->bulletCnt]->size = this->bulletSize;
-				this->bullet[bulletCnt + 1]->point[i].x = this->x + cos(-(this->tankR + this->headR + 15) * PI) * (float)(gap * i);
-				this->bullet[bulletCnt + 1]->point[i].y = this->point[i].y;
-				this->bullet[bulletCnt + 1]->point[i].z = this->z + sin(-(this->tankR + this->headR + 15) * PI) * (float)(gap * i);
-				this->bullet[this->bulletCnt + 1]->r = this->headR + this->tankR;
-				this->bullet[this->bulletCnt + 1]->size = this->bulletSize;
+			for (int i = 0; i < 100; i++) this->bullet[bulletCnt]->point[i] = this->point[i];
+			this->bullet[this->bulletCnt]->r = this->headR + this->tankR;
+			this->bulletCnt = (this->bulletCnt + 1) % 9;
+
+			if (this->supermode) {
+				float gap = this->range / 100.0f;
+				this->bullet[this->bulletCnt]->active = 1;
+				this->bullet[this->bulletCnt]->tic = 0;
+				this->bullet[this->bulletCnt + 1]->active = 1;
+				this->bullet[this->bulletCnt + 1]->tic = 0;
+				for (int i = 0; i < 100; i++) {
+					this->bullet[bulletCnt]->point[i].x = this->x + cos(-(this->tankR + this->headR - 15) * PI) * (float)(gap * i);
+					this->bullet[bulletCnt]->point[i].y = this->point[i].y;
+					this->bullet[bulletCnt]->point[i].z = this->z + sin(-(this->tankR + this->headR - 15) * PI) * (float)(gap * i);
+					this->bullet[this->bulletCnt]->r = this->headR + this->tankR;
+					this->bullet[this->bulletCnt]->size = this->bulletSize;
+					this->bullet[bulletCnt + 1]->point[i].x = this->x + cos(-(this->tankR + this->headR + 15) * PI) * (float)(gap * i);
+					this->bullet[bulletCnt + 1]->point[i].y = this->point[i].y;
+					this->bullet[bulletCnt + 1]->point[i].z = this->z + sin(-(this->tankR + this->headR + 15) * PI) * (float)(gap * i);
+					this->bullet[this->bulletCnt + 1]->r = this->headR + this->tankR;
+					this->bullet[this->bulletCnt + 1]->size = this->bulletSize;
+				}
 			}
 		}
 	}
@@ -363,7 +369,9 @@ public:
 	float rotate = 0;
 	float range = 2.0f;
 	float size = 1.0f;
+	float hpSize = 0.2f;
 	int reload = 1;
+	int maxHp = 5;
 	int hp = 1;
 	int power = 0;
 	int condition = 0;
@@ -386,6 +394,7 @@ public:
 
 	void draw(unsigned int modelLocation, unsigned int objColorLocation) {
 		if (this->active) {
+			//라이플맨
 			glm::mat4 RIFLE = glm::mat4(1.0f);
 			RIFLE = glm::translate(RIFLE, glm::vec3(this->x, this->y, this->z));
 			RIFLE = glm::rotate(RIFLE, -this->rotate + 90.0f, glm::vec3(0,1,0));
@@ -395,6 +404,17 @@ public:
 			glBindTexture(GL_TEXTURE_2D, rifle_texture);
 			glBindVertexArray(rifle_VAO);
 			glDrawArrays(GL_TRIANGLES, 0, rifle_obj);
+
+			//체력바
+			glm::mat4 HP = glm::mat4(1.0f);
+			HP = glm::translate(HP, glm::vec3(this->x, this->y + 1.0f, this->z));
+			HP = glm::rotate(HP, glm::radians(45.0f), glm::vec3(0, 1, 0));
+			HP = glm::scale(HP, glm::vec3(this->hpSize, 0.01f, 0.02f));
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(HP));
+			glUniform3f(objColorLocation, 1.0, 0, 0);
+			glBindVertexArray(VAO_[1]);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+
 		}
 		this->bullet[0].draw(bullet_enemy_VAO, bullet_enemy_obj, rifle_texture, modelLocation, objColorLocation);
 	}
@@ -421,6 +441,7 @@ public:
 	void hit() {
 		if (this->active) {
 			this->hp -= 1;
+			this->hpSize = 0.2f * this->hp / this->maxHp;
 			if (this->hp <= 0) { 
 				this->active = 0; 
 				playingKill();
@@ -434,9 +455,10 @@ public:
 			this->attack_timer = time(NULL);
 			this->bullet[0].active = 1;
 			this->bullet[0].x = this->x;
-			this->bullet[0].y = 0.01f;
+			this->bullet[0].y = 0.07f;
 			this->bullet[0].z = this->z;
 			this->bullet[0].r = this->rotate;
+			this->bullet[0].speed = 0.01f;
 		}
 	}
 
@@ -487,6 +509,7 @@ public:
 	float x, y, z;
 	float size = 0.1;
 	float speed = 0.005;
+	float angle = 0;
 	int skill = 0;
 	bool active = 0;
 	bool onfoot = 0;
@@ -495,10 +518,11 @@ public:
 		if (this->active) {
 			glm::mat4 ITEM = glm::mat4(1.0f);
 			ITEM = glm::translate(ITEM, glm::vec3(this->x, this->y, this->z));
+			ITEM = glm::rotate(ITEM, glm::radians(this->angle), glm::vec3(0, 1, 0));
 			ITEM = glm::scale(ITEM, glm::vec3(this->size, this->size, this->size));
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(ITEM));
 			glUniform3f(objColorLocation, 0.0, 0.0, 0.7);
-			glBindVertexArray(VAO[1]);
+			glBindVertexArray(VAO_[1]);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 	}
@@ -522,6 +546,8 @@ public:
 	void update() {
 		if (this->active) {
 			this->move();
+			if (this->angle <= 360.0f) this->angle += 1.0f;
+			else this->angle = 0;
 		}
 	}
 

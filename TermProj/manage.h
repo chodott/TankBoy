@@ -25,7 +25,7 @@ time_t start; //시간 측정
 bool* keyStates = new bool[256]; //키 상태 변수
 
 // 0=평면, 1=정육면체
-GLuint VAO[4];
+GLuint VAO_[4];
 GLuint VBO_position[4];
 GLuint VBO_normal[4];
 GLuint VBO_texture[4];

@@ -73,7 +73,7 @@ GLvoid drawScene(GLvoid)
 	glUniform3f(objColorLocation, 0.7, 0.7, 0.7);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, ground_texture);
-	glBindVertexArray(VAO[0]);
+	glBindVertexArray(VAO_[0]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glm::mat4 WALL_left = glm::mat4(1.0f);
@@ -82,7 +82,7 @@ GLvoid drawScene(GLvoid)
 	WALL_left = glm::rotate(WALL_left, (GLfloat)glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(WALL_left));
 	glBindTexture(GL_TEXTURE_2D, wall_texture);
-	glBindVertexArray(VAO[0]);
+	glBindVertexArray(VAO_[0]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glm::mat4 WALL_right = glm::mat4(1.0f);
@@ -90,7 +90,7 @@ GLvoid drawScene(GLvoid)
 	WALL_right = glm::rotate(WALL_right, (GLfloat)glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(WALL_right));
 	glBindTexture(GL_TEXTURE_2D, wall_texture);
-	glBindVertexArray(VAO[0]);
+	glBindVertexArray(VAO_[0]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	draw(modelLocation, objColorLocation);
@@ -153,14 +153,14 @@ GLvoid Timer(int value)
 
 GLvoid InitBuffer()
 {	
-	glGenVertexArrays(4, VAO);
+	glGenVertexArrays(4, VAO_);
 	glGenBuffers(4, VBO_position);
 	glGenBuffers(4, VBO_normal);
 	glGenBuffers(4, VBO_texture);
 	glUseProgram(s_program[0]);
 
 	//평면
-	glBindVertexArray(VAO[0]);
+	glBindVertexArray(VAO_[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO_position[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(plate), plate, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
@@ -171,7 +171,7 @@ GLvoid InitBuffer()
 	glEnableVertexAttribArray(2);
 
 	//장애물
-	glBindVertexArray(VAO[1]);
+	glBindVertexArray(VAO_[1]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO_position[1]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
