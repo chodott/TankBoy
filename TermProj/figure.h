@@ -6,6 +6,7 @@ void setBlock();
 #define PI 3.141592/180
 #define BLOCK_AMOUNT 50
 #define RIFLE_AMOUNT 30
+#define BAZOOKA_AMOUNT 30
 #define ITEM_AMOUNT 10
 
 //평면
@@ -53,11 +54,12 @@ unsigned int rifle_texture; //소총병의 텍스처를 탄환도 공유해서 여기다적었엉
 class Bullet {
 public:
 	Point point[100] = {};
-	float size = 0.1f;
+	float size = 0.2f;
 	float x, y, z;
 	float r = 0;
 	float speed = 0.2f;
 	int tic = 0;
+	int power = 0;
 	bool active = 0;
 	Bullet() : x{ 0 }, y{ 0 }, z{ 0 } {}
 
@@ -152,6 +154,7 @@ public:
 	float reload = 0.5f;
 	float x, y, z;
 	unsigned int body_texture, head_texture, cannon_texture;
+	int power = 5;
 	int timer = 0;
 	int maxhp = 30;
 	int hp = 5;
@@ -260,7 +263,7 @@ public:
 		//포물선 업데이트
 		this->minRange += 0.1f;
 		float gap = this->minRange / 100.0f;
-		float gravity = 0.02f / 100.0f;
+		float gravity = 0.03f / 100.0f;
 		float height_accel = 2.0f / 100.0f;
 		for (int i = 0; i < 100; i++) {
 			this->point[i].x = this->x + cos(-(this->tankR + this->headR) * PI) * (float)(gap * i);
@@ -275,6 +278,7 @@ public:
 			this->timer = time(NULL);
 			this->bullet[this->bulletCnt]->active = 1;
 			this->bullet[this->bulletCnt]->tic = 0;
+			this->bullet[this->bulletCnt]->power = this->power;
 			for (int i = 0; i < 100; i++) this->bullet[bulletCnt]->point[i] = this->point[i];
 			this->bullet[this->bulletCnt]->r = this->headR + this->tankR;
 			this->bulletCnt = (this->bulletCnt + 1) % 9;
@@ -283,8 +287,10 @@ public:
 				float gap = this->minRange / 100.0f;
 				this->bullet[this->bulletCnt]->active = 1;
 				this->bullet[this->bulletCnt]->tic = 0;
+				this->bullet[this->bulletCnt]->power = this->power;
 				this->bullet[this->bulletCnt + 1]->active = 1;
 				this->bullet[this->bulletCnt + 1]->tic = 0;
+				this->bullet[this->bulletCnt]->power = this->power;
 				for (int i = 0; i < 100; i++) {
 					this->bullet[bulletCnt]->point[i].x = this->x + cos(-(this->tankR + this->headR - 15) * PI) * (float)(gap * i);
 					this->bullet[bulletCnt]->point[i].y = this->point[i].y;
@@ -303,8 +309,8 @@ public:
 		}
 	}
 
-	void hit() {
-		this->hp -= 1;
+	void hit(int power) {
+		this->hp -= power;
 		if (this->hp <= 0) this->death = 1;
 	}
 
@@ -319,8 +325,27 @@ public:
 	}
 
 	bool collide(float extraX, float extraY, float extraZ, float extraSize) {
-		float distance = sqrt((this->x - extraX) * (this->x - extraX) + (this->y - extraY) * (this->y - extraY) + (this->z - extraZ) * (this->z - extraZ));
-		if (extraSize * sqrt(2) + this->size * sqrt(2) >= distance) return true;
+		//float distance = sqrt((this->x - extraX) * (this->x - extraX) + (this->y - extraY) * (this->y - extraY) + (this->z - extraZ) * (this->z - extraZ));
+		//if (extraSize * sqrt(2) + this->size * sqrt(2) >= distance) return true;
+		float left, right, top, bottom;
+		float extra_left = 0, extra_right = 0, extra_top = 0, extra_bottom = 0;
+		left = this->x - this->size / 2;
+		right = this->x + this->size / 2;
+		top = this->z + this->size / 2;
+		bottom = this->z - this->size / 2;
+		extra_left = extraX - extraSize/2;
+		extra_right = extraX + extraSize / 2;
+		extra_top = extraZ + extraSize / 2;
+		extra_bottom = extraZ - extraSize / 2;
+		if (left <= extra_right && left >= extra_left && top <= extra_top && top >= extra_bottom) return true;
+		if (right <= extra_right && right >= extra_left && top <= extra_top && top >= extra_bottom) return true;
+		if (left <= extra_right && left >= extra_left && bottom <= extra_top && bottom >= extra_bottom) return true;
+		if (right <= extra_right && right >= extra_left && bottom <= extra_top && bottom >= extra_bottom) return true;
+
+		if (extra_left >= left && right >= extra_left && extra_top <= top && bottom <= extra_top) { return true; }
+		if (left <= extra_right && right >= extra_right && top >= extra_top && extra_top >= bottom) { return true; }
+		if (extra_left >= left && right >= extra_left && extra_bottom <= top && bottom <= extra_bottom) { return true; }
+		if (left <= extra_right && right >= extra_right && bottom >= extra_top && extra_bottom >= bottom) { return true; }
 		return false;
 	}
 	
@@ -328,6 +353,7 @@ public:
 		// 장애물 사이즈 1:1x1 2:2x1 3:1x2
 		float left, right, top, bottom;
 		float extra_left = 0, extra_right =0, extra_top = 0, extra_bottom = 0;
+		bool check = 0;
 		left = this->x - this->size / 2; 
 		right = this->x + this->size / 2; 
 		top = this->z + this->size / 2; 
@@ -410,12 +436,12 @@ public:
 	float speed = 0.01;
 	float x, y, z;
 	float rotate = 0;
-	float range = 2.0f;
+	float range = 4.0f;
 	float size = 1.0f;
 	float hpSize = 0.2f;
 	int reload = 1;
-	int maxHp = 5;
-	int hp = 1;
+	int maxHp = 0;
+	int hp = 0;
 	int power = 0;
 	int condition = 0;
 	bool active = 0;
@@ -429,6 +455,8 @@ public:
 				this->x = (x - 25) + 0.5f;
 				this->y = 0.1f;
 				this->z = (z - 25) + 0.5f;
+				this->maxHp = 5 * level;
+				this->hp = 5 * level;
 				break;
 			}
 		}
@@ -480,9 +508,9 @@ public:
 		}
 	}
 
-	void hit() {
+	void hit(int power) {
 		if (this->active) {
-			this->hp -= 1;
+			this->hp -= power;
 			this->hpSize = 0.2f * this->hp / this->maxHp;
 			if (this->hp <= 0) { 
 				this->active = 0; 
@@ -500,13 +528,33 @@ public:
 			this->bullet[0].y = 0.07f;
 			this->bullet[0].z = this->z;
 			this->bullet[0].r = this->rotate;
-			this->bullet[0].speed = 0.01f;
+			this->bullet[0].speed = 0.1f;
+			this->bullet[0].power = this->power;
 		}
 	}
 
 	bool collide(float extraX, float extraY, float extraZ,  float extraSize) {
-		float distance = sqrt((this->x - extraX) * (this->x - extraX) + (this->y - extraY)* (this->y-extraY) +(this->z - extraZ) * (this->z - extraZ));
-		if (extraSize * sqrt(2) + this->size * sqrt(2) >= distance) return true;
+		//float distance = sqrt((this->x - extraX) * (this->x - extraX) + (this->y - extraY)* (this->y-extraY) +(this->z - extraZ) * (this->z - extraZ));
+		//if (extraSize * sqrt(2) + this->size * sqrt(2) >= distance) return true;
+		float left, right, top, bottom;
+		float extra_left = 0, extra_right = 0, extra_top = 0, extra_bottom = 0;
+		left = this->x - this->size / 2;
+		right = this->x + this->size / 2;
+		top = this->z + this->size / 2;
+		bottom = this->z - this->size / 2;
+		extra_left = extraX - extraSize/2;
+		extra_right = extraX + extraSize/2;
+		extra_top = extraZ + extraSize/2;
+		extra_bottom = extraZ - extraSize/2;
+		if (left <= extra_right && left >= extra_left && top <= extra_top && top >= extra_bottom) return true;
+		if (right <= extra_right && right >= extra_left && top <= extra_top && top >= extra_bottom) return true;
+		if (left <= extra_right && left >= extra_left && bottom <= extra_top && bottom >= extra_bottom) return true;
+		if (right <= extra_right && right >= extra_left && bottom <= extra_top && bottom >= extra_bottom) return true;
+
+		if (extra_left >= left && right >= extra_left && extra_top <= top && bottom <= extra_top) { return true; }
+		if (left <= extra_right && right >= extra_right && top >= extra_top && extra_top >= bottom) { return true; }
+		if (extra_left >= left && right >= extra_left && extra_bottom <= top && bottom <= extra_bottom) { return true; }
+		if (left <= extra_right && right >= extra_right && bottom >= extra_top && extra_bottom >= bottom) { return true; }
 		return false;
 	}
 
@@ -545,6 +593,181 @@ public:
 		if (right <= extra_right && right >= extra_left && top <= extra_top && top >= extra_bottom) { return true; }
 		if (left <= extra_right && left >= extra_left && bottom <= extra_top && bottom >= extra_bottom) {  return true; }
 		if (right <= extra_right && right >= extra_left && bottom <= extra_top && bottom >= extra_bottom) {  return true; }
+
+		return false;
+	}
+};
+
+GLuint bazooka_VAO;
+GLuint bazooka_VBO[3];
+unsigned bazooka_texture;
+int bazooka_obj;
+class BazookaMan {
+public:
+	time_t attack_timer = 0;
+	Bullet bullet[3];
+	Block* block;
+	float speed = 0.01;
+	float x, y, z;
+	float rotate = 0;
+	float range = 4.0f;
+	float size = 1.0f;
+	float hpSize = 0.3f;
+	int reload = 2;
+	int maxHp = 0;
+	int hp = 0;
+	int power = 0;
+	int condition = 0;
+	bool active = 0;
+
+	void spawn(int level) { //소환
+		this->active = 1;
+		while (-1) {
+			int x = rand() % 50;
+			int z = rand() % 50;
+			if (map[z][x] == 0) {
+				this->x = (x - 25) + 0.5f;
+				this->y = 0.1f;
+				this->z = (z - 25) + 0.5f;
+				this->maxHp = 7 * level;
+				this->hp = 7 * level;
+				this->power = level;
+				break;
+			}
+		}
+	}
+
+	void draw(unsigned int modelLocation, unsigned int objColorLocation) {
+		if (this->active) {
+			//바주카
+			glm::mat4 BAZOOKA = glm::mat4(1.0f);
+			BAZOOKA = glm::translate(BAZOOKA, glm::vec3(this->x, this->y, this->z));
+			BAZOOKA = glm::rotate(BAZOOKA, -this->rotate + 90.0f, glm::vec3(0, 1, 0));
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(BAZOOKA));
+			glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, bazooka_texture);
+			glBindVertexArray(bazooka_VAO);
+			glDrawArrays(GL_TRIANGLES, 0, bazooka_obj);
+
+			//체력바
+			glm::mat4 HP = glm::mat4(1.0f);
+			HP = glm::translate(HP, glm::vec3(this->x, this->y + 1.0f, this->z));
+			HP = glm::rotate(HP, glm::radians(45.0f), glm::vec3(0, 1, 0));
+			HP = glm::scale(HP, glm::vec3(this->hpSize, 0.01f, 0.02f));
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(HP));
+			glUniform3f(objColorLocation, 1.0, 0, 0);
+			glBindVertexArray(VAO_[1]);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		}
+		this->bullet[0].draw(bullet_enemy_VAO, bullet_enemy_obj, rifle_texture, modelLocation, objColorLocation);
+	}
+
+	void move(float tankX, float tankZ) {
+		float distance = sqrt((tankZ - this->z) * (tankZ - this->z) + (tankX - this->x) * (tankX - this->x)); //간격
+		this->rotate = atan2((tankZ - this->z), (tankX - this->x));
+		if (distance > this->range && this->condition == 0) { //사정거리 보다 멀면 이동
+			this->x += cos(this->rotate) * this->speed;
+			this->z += sin(this->rotate) * this->speed;
+		}
+		else this->attack();
+		//총알 이동
+		this->bullet[0].enemy_move();
+	}
+
+	void update(float tankX, float tankZ) {
+		if (this->active) {
+			this->move(tankX, tankZ);
+		}
+	}
+
+	void hit(int power) {
+		if (this->active) {
+			this->hp -= power;
+			this->hpSize = 0.3f * this->hp / this->maxHp;
+			if (this->hp <= 0) {
+				this->active = 0;
+				playingKill();
+			}
+		}
+	}
+
+	void attack() {
+		if (time(NULL) - this->attack_timer > this->reload) {
+			PlaySound(TEXT("explosion.wav"), NULL, SND_ASYNC | SND_NOSTOP);
+			this->attack_timer = time(NULL);
+			this->bullet[0].active = 1;
+			this->bullet[0].x = this->x;
+			this->bullet[0].y = 0.07f;
+			this->bullet[0].z = this->z;
+			this->bullet[0].r = this->rotate;
+			this->bullet[0].speed = 0.1f;
+			this->bullet[0].power = this->power;
+		}
+	}
+
+	bool collide(float extraX, float extraY, float extraZ, float extraSize) {
+		//float distance = sqrt((this->x - extraX) * (this->x - extraX) + (this->y - extraY)* (this->y-extraY) +(this->z - extraZ) * (this->z - extraZ));
+		//if (extraSize * sqrt(2) + this->size * sqrt(2) >= distance) return true;
+		float left, right, top, bottom;
+		float extra_left = 0, extra_right = 0, extra_top = 0, extra_bottom = 0;
+		left = this->x - this->size / 2;
+		right = this->x + this->size / 2;
+		top = this->z + this->size / 2;
+		bottom = this->z - this->size / 2;
+		extra_left = extraX - extraSize / 2;
+		extra_right = extraX + extraSize / 2;
+		extra_top = extraZ + extraSize / 2;
+		extra_bottom = extraZ - extraSize / 2;
+		if (left <= extra_right && left >= extra_left && top <= extra_top && top >= extra_bottom) return true;
+		if (right <= extra_right && right >= extra_left && top <= extra_top && top >= extra_bottom) return true;
+		if (left <= extra_right && left >= extra_left && bottom <= extra_top && bottom >= extra_bottom) return true;
+		if (right <= extra_right && right >= extra_left && bottom <= extra_top && bottom >= extra_bottom) return true;
+
+		if (extra_left >= left && right >= extra_left && extra_top <= top && bottom <= extra_top) { return true; }
+		if (left <= extra_right && right >= extra_right && top >= extra_top && extra_top >= bottom) { return true; }
+		if (extra_left >= left && right >= extra_left && extra_bottom <= top && bottom <= extra_bottom) { return true; }
+		if (left <= extra_right && right >= extra_right && bottom >= extra_top && extra_bottom >= bottom) { return true; }
+		return false;
+	}
+
+	bool block_collide(float extraX, float extraY, float extraZ, int shape) {
+		// 장애물 사이즈 1:1x1 2:2x1 3:1x2
+		float left, right, top, bottom;
+		float extra_left = 0, extra_right = 0, extra_top = 0, extra_bottom = 0;
+		left = this->x - this->size / 2;
+		right = this->x + this->size / 2;
+		top = this->z + this->size / 2;
+		bottom = this->z - this->size / 2;
+		switch (shape) {
+
+		case 1:
+			extra_left = extraX - 0.5f;
+			extra_right = extraX + 0.5f;
+			extra_top = extraZ + 0.5f;
+			extra_bottom = extraZ - 0.5f;
+			break;
+
+		case 2:
+			extra_left = extraX - 0.5f;
+			extra_right = extraX + 1.5f;
+			extra_top = extraZ + 0.5f;
+			extra_bottom = extraZ - 0.5f;
+			break;
+
+		case 3:
+			extra_left = extraX - 0.5f;
+			extra_right = extraX + 0.5f;
+			extra_top = extraZ + 1.5f;
+			extra_bottom = extraZ - 0.5f;
+			break;
+		}
+		if (left <= extra_right && left >= extra_left && top <= extra_top && top >= extra_bottom) { return true; }
+		if (right <= extra_right && right >= extra_left && top <= extra_top && top >= extra_bottom) { return true; }
+		if (left <= extra_right && left >= extra_left && bottom <= extra_top && bottom >= extra_bottom) { return true; }
+		if (right <= extra_right && right >= extra_left && bottom <= extra_top && bottom >= extra_bottom) { return true; }
+
 		return false;
 	}
 };
@@ -610,6 +833,8 @@ Tank tank;
 Block block[BLOCK_AMOUNT];
 
 RifleMan rifle[RIFLE_AMOUNT];
+
+BazookaMan bazooka[BAZOOKA_AMOUNT];
 
 Item item[ITEM_AMOUNT];
 

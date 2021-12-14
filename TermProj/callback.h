@@ -46,7 +46,7 @@ GLvoid drawScene(GLvoid)
 	unsigned int objColorLocation = glGetUniformLocation(s_program[0], "objectColor");
 
 	//뷰 변환
-	glm::vec3 cameraPos = glm::vec3(tank.x + 3.0f, 5.0f, tank.z + 3.0f); //--- 카메라 위치
+	glm::vec3 cameraPos = glm::vec3(tank.x + 5.0f, 10.0f, tank.z + 5.0f); //--- 카메라 위치
 	glm::vec3 cameraTarget = glm::vec3(tank.x, 0.5f, tank.z);
 	glm::vec3 cameraDirection = glm::normalize(-cameraPos + cameraTarget); //--- 카메라 바라보는 방향
 	glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f); //--- 카메라 위쪽 방향
@@ -96,6 +96,30 @@ GLvoid drawScene(GLvoid)
 
 	draw(modelLocation, objColorLocation);
 
+	if (gameState == 0) {
+		glm::mat4 GAME_START = glm::mat4(1.0f);
+		GAME_START = glm::translate(GAME_START, glm::vec3(3.0, 5.0, 3.0));
+		GAME_START = glm::rotate(GAME_START, glm::radians(-45.0f), glm::vec3(0, 1, 0));
+		GAME_START = glm::scale(GAME_START, glm::vec3(0.01, 0.1, 0.03));
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(GAME_START));
+		if(!select_button) glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
+		else glUniform3f(objColorLocation, 0.8, 0.8, 0.8);
+		glBindTexture(GL_TEXTURE_2D, wall_texture);
+		glBindVertexArray(VAO_[0]);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		glm::mat4 GAME_END = glm::mat4(1.0f);
+		GAME_END = glm::translate(GAME_END, glm::vec3(3.5, 5.0, 3.5));
+		GAME_END = glm::rotate(GAME_END, glm::radians(-45.0f), glm::vec3(0, 1, 0));
+		GAME_END = glm::scale(GAME_END, glm::vec3(0.01, 0.1, 0.03));
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(GAME_END));
+		if (select_button) glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
+		else glUniform3f(objColorLocation, 0.6, 0.6, 0.6);
+		glBindTexture(GL_TEXTURE_2D, wall_texture);
+		glBindVertexArray(VAO_[0]);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+
 	//더블 버퍼링
 	glutSwapBuffers();
 }
@@ -106,42 +130,58 @@ GLvoid Reshape(int w, int h)
 
 GLvoid Keyboard(unsigned char key, int x, int y)
 {
-	switch (key) {
-	case 'w': keyStates[0] = true; break;
-	case 'a': keyStates[1] = true; break;
-	case 's': keyStates[2] = true; break;
-	case 'd': keyStates[3] = true; break;
-	case ' ': keyStates[8] = true; break;
+	if (gameState == 1) {
+		switch (key) {
+		case 'w': keyStates[0] = true; break;
+		case 'a': keyStates[1] = true; break;
+		case 's': keyStates[2] = true; break;
+		case 'd': keyStates[3] = true; break;
+		case ' ': keyStates[8] = true; break;
+		}
+	}
+	else if (gameState == 0 && key == ' ') {
+		if (select_button) exit(1);
+		else gameState = 1;
 	}
 }
 
 GLvoid UpKeyboard(unsigned char key, int x, int y) {
-	switch (key) {
-	case 'w': keyStates[0] = false; break;
-	case 'a': keyStates[1] = false; break;
-	case 's': keyStates[2] = false; break;
-	case 'd': keyStates[3] = false; break;
-	case ' ': tank.attack(); keyStates[8] = false; break;
+	if (gameState == 1) {
+		switch (key) {
+		case 'w': keyStates[0] = false; break;
+		case 'a': keyStates[1] = false; break;
+		case 's': keyStates[2] = false; break;
+		case 'd': keyStates[3] = false; break;
+		case ' ': tank.attack(); keyStates[8] = false; break;
+		}
 	}
 }
 
 GLvoid Special(int key, int x, int y)
 {
-	switch (key) {
-	case 100: keyStates[4] = true; break;
-	case 101: {keyStates[7] = false; tank.moving = 1; keyStates[5] = true; break; }
-	case 102: keyStates[6] = true; break;
-	case 103: {keyStates[5] = false; tank.moving = 1; keyStates[7] = true; break; }
+	if (gameState == 1) {
+		switch (key) {
+		case 100: keyStates[4] = true; break;
+		case 101: {keyStates[7] = false; tank.moving = 1; keyStates[5] = true; break; }
+		case 102: keyStates[6] = true; break;
+		case 103: {keyStates[5] = false; tank.moving = 1; keyStates[7] = true; break; }
+		}
+	}
+	else if (gameState == 0) {
+		if (key == 101) select_button = 0;
+		else if(key == 103) select_button = 1;
 	}
 }
 
 GLvoid UpSpecial(int key, int x, int y)
 {
-	switch (key) {
-	case 100: keyStates[4] = false; break;
-	case 101: tank.moving = 0; break;
-	case 102: keyStates[6] = false; break;
-	case 103: tank.moving = 0; break;
+	if (gameState == 1) {
+		switch (key) {
+		case 100: keyStates[4] = false; break;
+		case 101: tank.moving = 0; break;
+		case 102: keyStates[6] = false; break;
+		case 103: tank.moving = 0; break;
+		}
 	}
 }
 
@@ -286,6 +326,33 @@ GLvoid InitBuffer()
 	outnormal.clear();
 
 	glBindBuffer(GL_ARRAY_BUFFER, rifle_VBO[2]);
+	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glEnableVertexAttribArray(2);
+	outuv.clear();
+
+	//바주카맨
+	bazooka_obj = loadObj("rifle.obj");
+	cout << "바주카맨 삼각형 수" << bazooka_obj << endl;
+
+	glGenBuffers(3, bazooka_VBO);
+
+	glGenVertexArrays(1, &bazooka_VAO);
+	glBindVertexArray(bazooka_VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, bazooka_VBO[0]);
+	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
+	outvertex.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, bazooka_VBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+	outnormal.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, bazooka_VBO[2]);
 	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
 	glEnableVertexAttribArray(2);
@@ -467,6 +534,16 @@ GLvoid InitTexture() { //여기 평면이랑 탱크 순서 바꿔뒀어열
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	unsigned char* data6 = stbi_load("rifle.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data6);
+
+	glGenTextures(1, &rifle_texture); //소총병, 탄환 색
+
+	glBindTexture(GL_TEXTURE_2D, rifle_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	unsigned char* data7 = stbi_load("rifle.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data7);
 
 	stbi_image_free(data0);
 	stbi_image_free(data1);
