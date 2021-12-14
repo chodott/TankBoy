@@ -147,7 +147,6 @@ public:
 	float heady = 0.0f; //머리 애니메이션에 사용
 	float maxRange = 10.0f;
 	float minRange = 2.0f;
-	float range = 4.3f;
 	float size = 1.0f;
 	float bulletSize = 0.1f;
 	float reload = 0.5f;
@@ -215,14 +214,16 @@ public:
 		for (int i = 0; i < 10; i++) this->bullet[i]->draw(bullet_ally_VAO, bullet_ally_obj, rifle_texture, modelLocation, objColorLocation);
 
 		//포물선 출력
-		for (int i = 0; i < 100; i += 9) {
-			glm::mat4 POINT = glm::mat4(1.0f);
-			POINT = glm::translate(POINT, glm::vec3(this->point[i].x, this->point[i].y, this->point[i].z));
-			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(POINT));
-			glUniform3f(objColorLocation, 0.0, 0.0, 0.0);
-			glPointSize(5);
-			glBindVertexArray(VAO[1]);
-			glDrawArrays(GL_POINTS, 0, 1);
+		if (this->push) {
+			for (int i = 0; i < 100; i += 9) {
+				glm::mat4 POINT = glm::mat4(1.0f);
+				POINT = glm::translate(POINT, glm::vec3(this->point[i].x, this->point[i].y, this->point[i].z));
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(POINT));
+				glUniform3f(objColorLocation, 0.0, 0.0, 0.0);
+				glPointSize(5);
+				glBindVertexArray(VAO[1]);
+				glDrawArrays(GL_POINTS, 0, 1);
+			}
 		}
 		}
 	}
@@ -252,14 +253,18 @@ public:
 
 	void update() {
 		for (int i = 0; i < 10; i++) this->bullet[i]->move();
+	}
 
+	void charge() {
+		this->push = 1;
 		//포물선 업데이트
-		float gap = this->range / 100.0f;
+		this->minRange += 0.1f;
+		float gap = this->minRange / 100.0f;
 		float gravity = 0.02f / 100.0f;
 		float height_accel = 2.0f / 100.0f;
 		for (int i = 0; i < 100; i++) {
 			this->point[i].x = this->x + cos(-(this->tankR + this->headR) * PI) * (float)(gap * i);
-			this->point[i].z = this->z + sin(-(this->tankR + this->headR) * PI)* (float)(gap * i);
+			this->point[i].z = this->z + sin(-(this->tankR + this->headR) * PI) * (float)(gap * i);
 			this->point[i].y = 0.7f + height_accel * i;
 			height_accel -= gravity;
 		}
@@ -275,7 +280,7 @@ public:
 			this->bulletCnt = (this->bulletCnt + 1) % 9;
 
 			if (this->supermode) {
-				float gap = this->range / 100.0f;
+				float gap = this->minRange / 100.0f;
 				this->bullet[this->bulletCnt]->active = 1;
 				this->bullet[this->bulletCnt]->tic = 0;
 				this->bullet[this->bulletCnt + 1]->active = 1;
@@ -293,6 +298,8 @@ public:
 					this->bullet[this->bulletCnt + 1]->size = this->bulletSize;
 				}
 			}
+			this->minRange = 2.0f;
+			this->push = 0;
 		}
 	}
 
@@ -356,6 +363,41 @@ public:
 	}
 };
 
+GLuint block_VAO[2];
+GLuint block_VBO[2][3];
+unsigned int block_texture; //장애물 텍스처는 한 파일로 처리했음
+int block_obj[2];
+class Block {
+public:
+	float x, y, z;
+	float blocky = 0.0f;
+	int shape = 0; // 장애물 사이즈 1:1x1 2:2x1 3:1x2
+
+	void getPos(float x, float y, float z) {
+		this->x = x; this->y = y; this->z = z;
+	}
+
+	void draw(unsigned int modelLocation, unsigned int objColorLocation) {
+		if (this->shape == 3)
+			blocky = -90.0f;
+		glm::mat4 BLOCK = glm::mat4(1.0f);
+		BLOCK = glm::translate(BLOCK, glm::vec3(this->x, this->y, this->z));
+		BLOCK = glm::rotate(BLOCK, (GLfloat)glm::radians(blocky), glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(BLOCK));
+		glUniform3f(objColorLocation, 0.7, 0.7, 0.7);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, block_texture);
+		if (this->shape == 1) {
+			glBindVertexArray(block_VAO[0]);
+			glDrawArrays(GL_TRIANGLES, 0, block_obj[0]);
+		}
+		else {
+			glBindVertexArray(block_VAO[1]);
+			glDrawArrays(GL_TRIANGLES, 0, block_obj[1]);
+		}
+	}
+};
+
 //병사
 GLuint rifle_VAO;
 GLuint rifle_VBO[3];
@@ -364,6 +406,7 @@ class RifleMan {
 public:
 	time_t attack_timer = 0;
 	Bullet bullet[3];
+	Block *block;
 	float speed = 0.01;
 	float x, y, z;
 	float rotate = 0;
@@ -427,7 +470,6 @@ public:
 			this->z += sin(this->rotate) * this->speed;
 		}
 		else this->attack();
-
 		//총알 이동
 		this->bullet[0].enemy_move();
 	}
@@ -467,40 +509,43 @@ public:
 		if (extraSize * sqrt(2) + this->size * sqrt(2) >= distance) return true;
 		return false;
 	}
-};
 
-GLuint block_VAO[2];
-GLuint block_VBO[2][3];
-unsigned int block_texture; //장애물 텍스처는 한 파일로 처리했음
-int block_obj[2];
-class Block {
-public:
-	float x, y, z;
-	float blocky = 0.0f;
-	int shape = 0; // 장애물 사이즈 1:1x1 2:2x1 3:1x2
+	bool block_collide(float extraX, float extraY, float extraZ, int shape) {
+		// 장애물 사이즈 1:1x1 2:2x1 3:1x2
+		float left, right, top, bottom;
+		float extra_left = 0, extra_right = 0, extra_top = 0, extra_bottom = 0;
+		left = this->x - this->size / 2;
+		right = this->x + this->size / 2;
+		top = this->z + this->size / 2;
+		bottom = this->z - this->size / 2;
+		switch (shape) {
 
-	void getPos(float x, float y, float z) {
-		this->x = x; this->y = y; this->z = z;
-	}
+		case 1:
+			extra_left = extraX - 0.5f;
+			extra_right = extraX + 0.5f;
+			extra_top = extraZ + 0.5f;
+			extra_bottom = extraZ - 0.5f;
+			break;
 
-	void draw(unsigned int modelLocation, unsigned int objColorLocation) {
-		if (this->shape == 3)
-			blocky = -90.0f;
-		glm::mat4 BLOCK = glm::mat4(1.0f);
-		BLOCK = glm::translate(BLOCK, glm::vec3(this->x, this->y, this->z));
-		BLOCK = glm::rotate(BLOCK, (GLfloat)glm::radians(blocky), glm::vec3(0.0f, 1.0f, 0.0f));
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(BLOCK));
-		glUniform3f(objColorLocation, 0.7, 0.7, 0.7);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, block_texture);
-		if (this->shape == 1) {
-			glBindVertexArray(block_VAO[0]);
-			glDrawArrays(GL_TRIANGLES, 0, block_obj[0]);
+		case 2:
+			extra_left = extraX - 0.5f;
+			extra_right = extraX + 1.5f;
+			extra_top = extraZ + 0.5f;
+			extra_bottom = extraZ - 0.5f;
+			break;
+
+		case 3:
+			extra_left = extraX - 0.5f;
+			extra_right = extraX + 0.5f;
+			extra_top = extraZ + 1.5f;
+			extra_bottom = extraZ - 0.5f;
+			break;
 		}
-		else {
-			glBindVertexArray(block_VAO[1]);
-			glDrawArrays(GL_TRIANGLES, 0, block_obj[1]);
-		}
+		if (left <= extra_right && left >= extra_left && top <= extra_top && top >= extra_bottom) { return true; }
+		if (right <= extra_right && right >= extra_left && top <= extra_top && top >= extra_bottom) { return true; }
+		if (left <= extra_right && left >= extra_left && bottom <= extra_top && bottom >= extra_bottom) {  return true; }
+		if (right <= extra_right && right >= extra_left && bottom <= extra_top && bottom >= extra_bottom) {  return true; }
+		return false;
 	}
 };
 

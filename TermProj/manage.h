@@ -30,6 +30,8 @@ GLuint VBO_position[4];
 GLuint VBO_normal[4];
 GLuint VBO_texture[4];
 
+int gameState = 0;
+
 
 
 //bool map[100][100]; // ¸Ê

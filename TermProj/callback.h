@@ -22,14 +22,15 @@ int num_Triangle;
 
 
 void keyOperations(void) { //키 상호작용 함수
-	if (keyStates[0] && tank.maxRange >= tank.range) tank.range += 0.1f;
+	//if (keyStates[0] && tank.maxRange >= tank.range) tank.range += 0.1f;
 	if (keyStates[1]) tank.headR += 5.0f;
-	if (keyStates[2] && tank.minRange <= tank.range) tank.range -= 0.1f;
+	//if (keyStates[2] && tank.minRange <= tank.range) tank.range -= 0.1f;
 	if (keyStates[3]) tank.headR -= 5.0f;
 	if (keyStates[4]) tank.tankR += 1.0f; //왼
 	if (keyStates[5]) tank.move(1); //앞
 	if (keyStates[6]) tank.tankR -= 1.0f; //오
 	if (keyStates[7]) tank.move(-1); //뒤
+	if (keyStates[8]) tank.charge();
 }
 
 GLvoid drawScene(GLvoid)
@@ -110,7 +111,7 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 	case 'a': keyStates[1] = true; break;
 	case 's': keyStates[2] = true; break;
 	case 'd': keyStates[3] = true; break;
-	case ' ': tank.attack();
+	case ' ': keyStates[8] = true; break;
 	}
 }
 
@@ -120,6 +121,7 @@ GLvoid UpKeyboard(unsigned char key, int x, int y) {
 	case 'a': keyStates[1] = false; break;
 	case 's': keyStates[2] = false; break;
 	case 'd': keyStates[3] = false; break;
+	case ' ': tank.attack(); keyStates[8] = false; break;
 	}
 }
 

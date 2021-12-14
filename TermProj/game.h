@@ -64,6 +64,10 @@ void collide_check() {
 			if (rifle[i].bullet[0].block_collide(block[i].x, block[i].y, block[i].z, block[i].shape)) {
 				rifle[i].bullet[0].active = 0;
 			}
+			if (rifle[i].block_collide(block[j].x, block[j].y, block[j].z, block[j].shape)) {
+				rifle[i].x -= cos(rifle[i].rotate) * rifle[i].speed;
+				rifle[i].z -= sin(rifle[i].rotate) * rifle[i].speed;
+			}
 		}
 	}
 
@@ -86,6 +90,7 @@ void collide_check() {
 		for (int j = 0; j < 10; j++) { //플레이어 탄환 + 장애물
 			if (tank.bullet[j]->block_collide(block[i].x, block[i].y, block[i].z, block[i].shape)) {
 				tank.bullet[j]->active = 0;
+
 			}
 		}
 	}
