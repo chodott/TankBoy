@@ -20,43 +20,45 @@ void draw(unsigned int modelLocation, unsigned int objColorLocation) {
 }
 
 void update() {
-	update_level(start);
-	tank.update();
-	//소총병 스폰
-	if ((time(NULL) - start) % 5 == 0 && (time(NULL)-start) != rifle_check) {
-		for (int i = 0; i < RIFLE_AMOUNT; i++) {
-			if (!rifle[i].active) {
-				rifle_check = (time(NULL) - start);
-				rifle[i].spawn(GAME_LEVEL);
-				break;
+	if (gameState == 1) {
+		update_level(start);
+		tank.update();
+		//소총병 스폰
+		if ((time(NULL) - start) % 5 == 0 && (time(NULL) - start) != rifle_check) {
+			for (int i = 0; i < RIFLE_AMOUNT; i++) {
+				if (!rifle[i].active) {
+					rifle_check = (time(NULL) - start);
+					rifle[i].spawn(GAME_LEVEL);
+					break;
+				}
 			}
 		}
-	}
-	//바주카병 스폰
-	if ((time(NULL) - start) % 5 == 0 && (time(NULL) - start) != bazooka_check) {
-		for (int i = 0; i < BAZOOKA_AMOUNT; i++) {
-			if (!bazooka[i].active) {
-				bazooka_check = (time(NULL) - start);
-				bazooka[i].spawn(GAME_LEVEL);
-				break;
+		//바주카병 스폰
+		if ((time(NULL) - start) % 10 == 0 && (time(NULL) - start) != bazooka_check) {
+			for (int i = 0; i < BAZOOKA_AMOUNT; i++) {
+				if (!bazooka[i].active) {
+					bazooka_check = (time(NULL) - start);
+					bazooka[i].spawn(GAME_LEVEL);
+					break;
+				}
 			}
 		}
-	}
 
-	//아이템 스폰
-	if ((time(NULL) - start) % 7 == 0 && (time(NULL) - start) != item_check) {
-		for (int i = 0; i < ITEM_AMOUNT; i++) {
-			if (!item[i].active) {
-				item_check = (time(NULL) - start);
-				item[i].spawn();
-				break;
+		//아이템 스폰
+		if ((time(NULL) - start) % 7 == 0 && (time(NULL) - start) != item_check) {
+			for (int i = 0; i < ITEM_AMOUNT; i++) {
+				if (!item[i].active) {
+					item_check = (time(NULL) - start);
+					item[i].spawn();
+					break;
+				}
 			}
 		}
+		for (int i = 0; i < RIFLE_AMOUNT; i++) rifle[i].update(tank.x, tank.z); //소총병 업데이트
+		for (int i = 0; i < BAZOOKA_AMOUNT; i++) bazooka[i].update(tank.x, tank.z); //바주카 업데이트
+		for (int i = 0; i < ITEM_AMOUNT; i++) item[i].update(); //아이템 업데이트
+		collide_check();
 	}
-	for (int i = 0; i < RIFLE_AMOUNT; i++) rifle[i].update(tank.x, tank.z); //소총병 업데이트
-	for (int i = 0; i < BAZOOKA_AMOUNT; i++) bazooka[i].update(tank.x, tank.z); //바주카 업데이트
-	for (int i = 0; i < ITEM_AMOUNT; i++) item[i].update(); //아이템 업데이트
-	collide_check();
 }
 
 void collide_check() {
@@ -74,12 +76,35 @@ void collide_check() {
 		}
 
 		for (int j = 0; j < BLOCK_AMOUNT; j++) { // 라이플맨 탄환 + 장애물
-			if (rifle[i].bullet[0].block_collide(block[i].x, block[i].y, block[i].z, block[i].shape)) {
+			if (rifle[i].bullet[0].block_collide(block[j].x, block[j].y, block[j].z, block[j].shape)) {
 				rifle[i].bullet[0].active = 0;
 			}
 			if (rifle[i].block_collide(block[j].x, block[j].y, block[j].z, block[j].shape)) {
 				rifle[i].x -= cos(rifle[i].rotate) * rifle[i].speed;
 				rifle[i].z -= sin(rifle[i].rotate) * rifle[i].speed;
+			}
+		}
+	}
+
+	for (int i = 0; i < BAZOOKA_AMOUNT; i++) {
+		if (tank.collide(bazooka[i].bullet[0].x, bazooka[i].bullet[0].y, bazooka[i].bullet[0].z, bazooka[i].bullet[0].size) && bazooka[i].bullet[0].active) {
+			tank.hit(bazooka[i].bullet[0].power);
+			bazooka[i].bullet[0].active = 0;
+		}
+		for (int j = 0; j < 10; j++) { //바주카맨 + 플레이어 탄환
+			if (bazooka[i].collide(tank.bullet[j]->x, tank.bullet[j]->y, tank.bullet[j]->z, tank.bullet[j]->size) && tank.bullet[j]->active && bazooka[i].active) {
+				bazooka[i].hit(tank.bullet[j]->power);
+				tank.bullet[j]->active = 0;
+			}
+		}
+
+		for (int j = 0; j < BLOCK_AMOUNT; j++) { // 바주카맨 탄환 + 장애물
+			if (bazooka[i].bullet[0].block_collide(block[j].x, block[j].y, block[j].z, block[j].shape)) {
+				bazooka[i].bullet[0].active = 0;
+			}
+			if (bazooka[i].block_collide(block[j].x, block[j].y, block[j].z, block[j].shape)) {
+				bazooka[i].x -= cos(bazooka[i].rotate) * bazooka[i].speed;
+				bazooka[i].z -= sin(bazooka[i].rotate) * bazooka[i].speed;
 			}
 		}
 	}

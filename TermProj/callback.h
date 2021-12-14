@@ -100,24 +100,35 @@ GLvoid drawScene(GLvoid)
 		glm::mat4 GAME_START = glm::mat4(1.0f);
 		GAME_START = glm::translate(GAME_START, glm::vec3(3.0, 5.0, 3.0));
 		GAME_START = glm::rotate(GAME_START, glm::radians(-45.0f), glm::vec3(0, 1, 0));
+		GAME_START = glm::rotate(GAME_START, glm::radians(-30.0f), glm::vec3(0, 0, 1));
 		GAME_START = glm::scale(GAME_START, glm::vec3(0.01, 0.1, 0.03));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(GAME_START));
 		if(!select_button) glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
-		else glUniform3f(objColorLocation, 0.8, 0.8, 0.8);
-		glBindTexture(GL_TEXTURE_2D, wall_texture);
-		glBindVertexArray(VAO_[0]);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		else glUniform3f(objColorLocation, 0.6, 0.6, 0.6);
+		glBindTexture(GL_TEXTURE_2D, title_texture);
+		glBindVertexArray(title_start_VAO);
+		glDrawArrays(GL_TRIANGLES, 0, title_start_obj);
 
 		glm::mat4 GAME_END = glm::mat4(1.0f);
 		GAME_END = glm::translate(GAME_END, glm::vec3(3.5, 5.0, 3.5));
 		GAME_END = glm::rotate(GAME_END, glm::radians(-45.0f), glm::vec3(0, 1, 0));
-		GAME_END = glm::scale(GAME_END, glm::vec3(0.01, 0.1, 0.03));
+		GAME_END = glm::rotate(GAME_END, glm::radians(-30.0f), glm::vec3(0, 0, 1));
+		//GAME_END = glm::scale(GAME_END, glm::vec3(0.01, 0.1, 0.028));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(GAME_END));
 		if (select_button) glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
 		else glUniform3f(objColorLocation, 0.6, 0.6, 0.6);
-		glBindTexture(GL_TEXTURE_2D, wall_texture);
-		glBindVertexArray(VAO_[0]);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(title_quit_VAO);
+		glDrawArrays(GL_TRIANGLES, 0, title_quit_obj);
+
+		glm::mat4 GAME_TITLE = glm::mat4(1.0f);
+		GAME_TITLE = glm::translate(GAME_TITLE, glm::vec3(-0.0, 2.8, -0.0));
+		GAME_TITLE = glm::rotate(GAME_TITLE, glm::radians(-45.0f), glm::vec3(0, 1, 0));
+		GAME_TITLE = glm::rotate(GAME_TITLE, glm::radians(-30.0f), glm::vec3(0, 0, 1));
+		GAME_TITLE = glm::scale(GAME_TITLE, glm::vec3(0.05, 0.1, 0.1));
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(GAME_TITLE));
+		glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
+		glBindVertexArray(title_logo_VAO);
+		glDrawArrays(GL_TRIANGLES, 0, title_logo_obj);
 	}
 
 	//´õºí ¹öÆÛ¸µ
@@ -332,7 +343,7 @@ GLvoid InitBuffer()
 	outuv.clear();
 
 	//¹ÙÁÖÄ«¸Ç
-	bazooka_obj = loadObj("rifle.obj");
+	bazooka_obj = loadObj("bazooka.obj");
 	cout << "¹ÙÁÖÄ«¸Ç »ï°¢Çü ¼ö" << bazooka_obj << endl;
 
 	glGenBuffers(3, bazooka_VBO);
@@ -454,6 +465,81 @@ GLvoid InitBuffer()
 	glEnableVertexAttribArray(2);
 	outuv.clear();
 
+	title_logo_obj = loadObj("title_logo.obj");
+
+	glGenBuffers(3, title_logo_VBO);
+
+	glGenVertexArrays(1, &title_logo_VAO);
+	glBindVertexArray(title_logo_VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, title_logo_VBO[0]);
+	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
+	outvertex.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, title_logo_VBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+	outnormal.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, title_logo_VBO[2]);
+	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glEnableVertexAttribArray(2);
+	outuv.clear();
+
+	title_start_obj = loadObj("title_start.obj");
+
+	glGenBuffers(3, title_start_VBO);
+
+	glGenVertexArrays(1, &title_start_VAO);
+	glBindVertexArray(title_start_VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, title_start_VBO[0]);
+	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
+	outvertex.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, title_start_VBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+	outnormal.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, title_start_VBO[2]);
+	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glEnableVertexAttribArray(2);
+	outuv.clear();
+
+	title_quit_obj = loadObj("title_quit.obj");
+
+	glGenBuffers(3, title_quit_VBO);
+
+	glGenVertexArrays(1, &title_quit_VAO);
+	glBindVertexArray(title_quit_VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, title_quit_VBO[0]);
+	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
+	outvertex.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, title_quit_VBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+	outnormal.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, title_quit_VBO[2]);
+	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glEnableVertexAttribArray(2);
+	outuv.clear();
+
 	glEnable(GL_DEPTH_TEST);
 }
 
@@ -535,15 +621,25 @@ GLvoid InitTexture() { //¿©±â Æò¸éÀÌ¶û ÅÊÅ© ¼ø¼­ ¹Ù²ãµ×¾î¿­
 	unsigned char* data6 = stbi_load("rifle.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data6);
 
-	glGenTextures(1, &rifle_texture); //¼ÒÃÑº´, ÅºÈ¯ »ö
+	glGenTextures(1, &bazooka_texture); //¼ÒÃÑº´, ÅºÈ¯ »ö
 
-	glBindTexture(GL_TEXTURE_2D, rifle_texture);
+	glBindTexture(GL_TEXTURE_2D, bazooka_texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	unsigned char* data7 = stbi_load("rifle.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	unsigned char* data7 = stbi_load("bazooka.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data7);
+
+	glGenTextures(1, &title_texture);
+
+	glBindTexture(GL_TEXTURE_2D, title_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	unsigned char* data8 = stbi_load("title.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data8);
 
 	stbi_image_free(data0);
 	stbi_image_free(data1);
@@ -552,4 +648,6 @@ GLvoid InitTexture() { //¿©±â Æò¸éÀÌ¶û ÅÊÅ© ¼ø¼­ ¹Ù²ãµ×¾î¿­
 	stbi_image_free(data4);
 	stbi_image_free(data5);
 	stbi_image_free(data6);
+	stbi_image_free(data7);
+	stbi_image_free(data8);
 }

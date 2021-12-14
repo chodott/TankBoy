@@ -42,6 +42,17 @@ public:
 	float x, y, z;
 };
 
+GLuint title_logo_VAO;
+GLuint title_logo_VBO[3];
+int title_logo_obj;
+GLuint title_start_VAO;
+GLuint title_start_VBO[3];
+int title_start_obj;
+GLuint title_quit_VAO;
+GLuint title_quit_VBO[3];
+int title_quit_obj;
+unsigned int title_texture;
+
 GLuint bullet_enemy_VAO; //적 탄환
 GLuint bullet_enemy_VBO[3];
 int bullet_enemy_obj;
@@ -92,6 +103,22 @@ public:
 			glBindTexture(GL_TEXTURE_2D, texture);
 			glBindVertexArray(VAO);
 			glDrawArrays(GL_TRIANGLES, 0, triangles);
+		}
+		else return;
+	}
+
+	void bazooka_draw(unsigned int modelLocation, unsigned int objColorLocation) {
+		if (this->active) {
+			glm::mat4 TANKBULLET = glm::mat4(1.0f);
+			TANKBULLET = glm::translate(TANKBULLET, glm::vec3(this->x, this->y, this->z));
+			TANKBULLET = glm::scale(TANKBULLET, glm::vec3(2.0, 2.0, 2.0));
+			TANKBULLET = glm::rotate(TANKBULLET, glm::radians(this->r), glm::vec3(0, 1, 0));
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TANKBULLET));
+			glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, rifle_texture);
+			glBindVertexArray(bullet_enemy_VAO);
+			glDrawArrays(GL_TRIANGLES, 0, bullet_enemy_obj);
 		}
 		else return;
 	}
@@ -147,24 +174,25 @@ public:
 	float tankR = 0; //몸체 각도
 	float headR = 0; //머리 각도
 	float heady = 0.0f; //머리 애니메이션에 사용
-	float maxRange = 10.0f;
+	float maxRange = 5.0f;
 	float minRange = 2.0f;
 	float size = 1.0f;
 	float bulletSize = 0.1f;
-	float reload = 0.5f;
+	float hpSize = 0.5;
+	float reload = 1.0f;
 	float x, y, z;
 	unsigned int body_texture, head_texture, cannon_texture;
 	int power = 5;
 	int timer = 0;
-	int maxhp = 30;
-	int hp = 5;
+	int maxhp = 20;
+	int hp = 20;
 	int bulletCnt = 0;
 	int obj_body = 0, obj_head = 0, obj_cannon = 0;
 	int head_frame = 0; //머리 흔들리는 애니메이션에 사용
 	bool death = 0;
 	bool moving = 0;
 	bool push = 0;
-	bool supermode = 1;
+	bool supermode = 0;
 	
 	Tank() : x{ 0 }, y{ 0 }, z{ 0 } { //탱크 생성자
 		for (int i = 0; i < 10; i++) {
@@ -173,10 +201,10 @@ public:
 	}
 
 	void draw(unsigned int modelLocation, unsigned int objColorLocation) {
-		if(!this->death){
+		if (!this->death) {
 		//탱크 출력
 		glm::mat4 TANK = glm::mat4(1.0f);
-		TANK = glm::translate(TANK, glm::vec3(this->x, 0.0f, this->z));
+		TANK = glm::translate(TANK, glm::vec3(this->x, (this->heady / 2.0f), this->z));
 		TANK = glm::rotate(TANK, glm::radians(this->tankR + 90.0f), glm::vec3(0, 1, 0));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TANK));
 		glUniform3f(objColorLocation, 0.7, 0.7, 0.7);
@@ -228,6 +256,15 @@ public:
 				glDrawArrays(GL_POINTS, 0, 1);
 			}
 		}
+		//체력바
+		glm::mat4 HP = glm::mat4(1.0f);
+		HP = glm::translate(HP, glm::vec3(this->x + 2.0f, this->y + 3.0f, this->z + 2.0f));
+		HP = glm::rotate(HP, glm::radians(45.0f), glm::vec3(0, 1, 0));
+		HP = glm::scale(HP, glm::vec3(this->hpSize, 0.01f, 0.1f));
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(HP));
+		glUniform3f(objColorLocation, 1.0, 0, 0);
+		glBindVertexArray(VAO_[1]);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 	}
 
@@ -261,7 +298,7 @@ public:
 	void charge() {
 		this->push = 1;
 		//포물선 업데이트
-		this->minRange += 0.1f;
+		if(this->minRange <= this->maxRange) this->minRange += 0.1f;
 		float gap = this->minRange / 100.0f;
 		float gravity = 0.03f / 100.0f;
 		float height_accel = 2.0f / 100.0f;
@@ -304,23 +341,27 @@ public:
 					this->bullet[this->bulletCnt + 1]->size = this->bulletSize;
 				}
 			}
-			this->minRange = 2.0f;
-			this->push = 0;
 		}
+		this->minRange = 2.0f;
+		this->push = 0;
 	}
 
 	void hit(int power) {
 		this->hp -= power;
-		if (this->hp <= 0) this->death = 1;
+		this->hpSize = 0.5f * this->hp / this->maxhp;
+		if (this->hp <= 0) { this->death = 1; gameState = 3; }
 	}
 
 	void upgrade(int skill) {
 		switch (skill) {
-		case 0: this->bulletSize += 0.1f; break;
-		case 1: this->size += 0.1f; break;
-		case 2: this->maxRange + 0.1f; break;
+		case 0: this->power += 1; break;
+		case 1: if (this->reload > 0.3); this->reload -= 0.1f; break;
+		case 2: this->maxRange + 1.0f; break;
 		case 3: this->hp += 5; break;
-		case 4: break;
+		case 4: 
+			if (this->supermode) this->power += 1;
+			else this->supermode = 1;
+			break;
 		}
 	}
 
@@ -337,15 +378,17 @@ public:
 		extra_right = extraX + extraSize / 2;
 		extra_top = extraZ + extraSize / 2;
 		extra_bottom = extraZ - extraSize / 2;
-		if (left <= extra_right && left >= extra_left && top <= extra_top && top >= extra_bottom) return true;
-		if (right <= extra_right && right >= extra_left && top <= extra_top && top >= extra_bottom) return true;
-		if (left <= extra_right && left >= extra_left && bottom <= extra_top && bottom >= extra_bottom) return true;
-		if (right <= extra_right && right >= extra_left && bottom <= extra_top && bottom >= extra_bottom) return true;
+		if (extraY - extraSize/2 <= this->y + this->size / 2) {
+			if (left <= extra_right && left >= extra_left && top <= extra_top && top >= extra_bottom) return true;
+			if (right <= extra_right && right >= extra_left && top <= extra_top && top >= extra_bottom) return true;
+			if (left <= extra_right && left >= extra_left && bottom <= extra_top && bottom >= extra_bottom) return true;
+			if (right <= extra_right && right >= extra_left && bottom <= extra_top && bottom >= extra_bottom) return true;
 
-		if (extra_left >= left && right >= extra_left && extra_top <= top && bottom <= extra_top) { return true; }
-		if (left <= extra_right && right >= extra_right && top >= extra_top && extra_top >= bottom) { return true; }
-		if (extra_left >= left && right >= extra_left && extra_bottom <= top && bottom <= extra_bottom) { return true; }
-		if (left <= extra_right && right >= extra_right && bottom >= extra_top && extra_bottom >= bottom) { return true; }
+			if (extra_left >= left && right >= extra_left && extra_top <= top && bottom <= extra_top) { return true; }
+			if (left <= extra_right && right >= extra_right && top >= extra_top && extra_top >= bottom) { return true; }
+			if (extra_left >= left && right >= extra_left && extra_bottom <= top && bottom <= extra_bottom) { return true; }
+			if (left <= extra_right && right >= extra_right && bottom >= extra_top && extra_bottom >= bottom) { return true; }
+		}
 		return false;
 	}
 	
@@ -498,14 +541,14 @@ public:
 			this->z += sin(this->rotate) * this->speed;
 		}
 		else this->attack();
-		//총알 이동
-		this->bullet[0].enemy_move();
 	}
 
 	void update(float tankX, float tankZ) {
 		if (this->active) {
 			this->move(tankX, tankZ);
 		}
+		//총알 이동
+		this->bullet[0].enemy_move();
 	}
 
 	void hit(int power) {
@@ -610,7 +653,7 @@ public:
 	float speed = 0.01;
 	float x, y, z;
 	float rotate = 0;
-	float range = 4.0f;
+	float range = 7.0f;
 	float size = 1.0f;
 	float hpSize = 0.3f;
 	int reload = 2;
@@ -631,7 +674,7 @@ public:
 				this->z = (z - 25) + 0.5f;
 				this->maxHp = 7 * level;
 				this->hp = 7 * level;
-				this->power = level;
+				this->power = level * 2;
 				break;
 			}
 		}
@@ -661,7 +704,7 @@ public:
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		}
-		this->bullet[0].draw(bullet_enemy_VAO, bullet_enemy_obj, rifle_texture, modelLocation, objColorLocation);
+		this->bullet[0].bazooka_draw(modelLocation, objColorLocation);
 	}
 
 	void move(float tankX, float tankZ) {
@@ -673,13 +716,13 @@ public:
 		}
 		else this->attack();
 		//총알 이동
-		this->bullet[0].enemy_move();
 	}
 
 	void update(float tankX, float tankZ) {
 		if (this->active) {
 			this->move(tankX, tankZ);
 		}
+		this->bullet[0].enemy_move();
 	}
 
 	void hit(int power) {
@@ -688,14 +731,14 @@ public:
 			this->hpSize = 0.3f * this->hp / this->maxHp;
 			if (this->hp <= 0) {
 				this->active = 0;
-				playingKill();
+				PlaySound(TEXT("kill_enemy.wav"), NULL, SND_ASYNC);
 			}
 		}
 	}
 
 	void attack() {
 		if (time(NULL) - this->attack_timer > this->reload) {
-			PlaySound(TEXT("explosion.wav"), NULL, SND_ASYNC | SND_NOSTOP);
+			PlaySound(TEXT("explosion2.wav"), NULL, SND_ASYNC | SND_NOSTOP);
 			this->attack_timer = time(NULL);
 			this->bullet[0].active = 1;
 			this->bullet[0].x = this->x;
@@ -704,6 +747,7 @@ public:
 			this->bullet[0].r = this->rotate;
 			this->bullet[0].speed = 0.1f;
 			this->bullet[0].power = this->power;
+			this->bullet[0].size = 0.03f;
 		}
 	}
 
@@ -805,7 +849,7 @@ public:
 				this->x = (x - 25) + 0.5f;
 				this->y = 5.10f;
 				this->z = (z - 25) + 0.5f;
-				this->skill = rand() % 3;
+				this->skill = rand() % 5;
 				break;
 			}
 		}
