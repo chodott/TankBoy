@@ -2,7 +2,6 @@
 
 GLchar* vertexSource;
 GLchar* fragmentSource;
-
 void main(int argc, char** argv)
 {
 	//윈도우 생성
@@ -40,6 +39,7 @@ void main(int argc, char** argv)
 
 	setBlock();
 	glEnable(GL_DEPTH_TEST);
+	//InitBuffer();
 	InitBuffer();
 	InitTexture();
 	glutDisplayFunc(drawScene);

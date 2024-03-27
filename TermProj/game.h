@@ -20,6 +20,7 @@ void draw(unsigned int modelLocation, unsigned int objColorLocation) {
 }
 
 void update() {
+	
 	if (gameState == 1) {
 		update_level(start);
 		tank.update();

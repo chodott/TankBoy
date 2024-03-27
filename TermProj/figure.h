@@ -1,4 +1,6 @@
+#pragma once
 #include "manage.h"
+#include "tank.h"
 
 void setBlock();
 

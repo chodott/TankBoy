@@ -1,6 +1,8 @@
 #pragma once
 #include "game.h"
-
+#define STB_IMAGE_IMPLEMENTATION //이미지파일 로드
+#include "stb_image.h"
+#include "framework.h"
 GLvoid Timer(int value);
 GLvoid Keyboard(unsigned char key, int x, int y);
 GLvoid UpKeyboard(unsigned char key, int x, int y);
@@ -20,6 +22,7 @@ int loadObj_normalize_center(const char* filename);
 float* sphere_object;
 int num_Triangle;
 
+Framework* framework = new Framework();
 
 void keyOperations(void) { //키 상호작용 함수
 	//if (keyStates[0] && tank.maxRange >= tank.range) tank.range += 0.1f;
@@ -131,6 +134,8 @@ GLvoid drawScene(GLvoid)
 		glDrawArrays(GL_TRIANGLES, 0, title_logo_obj);
 	}
 
+	framework->draw(modelLocation, objColorLocation);
+
 	//더블 버퍼링
 	glutSwapBuffers();
 }
@@ -154,6 +159,8 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 		if (select_button) exit(1);
 		else gameState = 1;
 	}
+
+	framework->keyInput(key, true);
 }
 
 GLvoid UpKeyboard(unsigned char key, int x, int y) {
@@ -166,6 +173,7 @@ GLvoid UpKeyboard(unsigned char key, int x, int y) {
 		case ' ': tank.attack(); keyStates[8] = false; break;
 		}
 	}
+	framework->keyInput(key, false);
 }
 
 GLvoid Special(int key, int x, int y)
@@ -182,6 +190,7 @@ GLvoid Special(int key, int x, int y)
 		if (key == 101) select_button = 0;
 		else if(key == 103) select_button = 1;
 	}
+	framework->keyInput(key, true);
 }
 
 GLvoid UpSpecial(int key, int x, int y)
@@ -194,11 +203,13 @@ GLvoid UpSpecial(int key, int x, int y)
 		case 103: tank.moving = 0; break;
 		}
 	}
+	framework->keyInput(key, false);
 }
 
 GLvoid Timer(int value)
 {
 	keyOperations();
+	framework->update();
 	update();
 	glutPostRedisplay();
 	glutTimerFunc(20, Timer, 1);
@@ -206,6 +217,8 @@ GLvoid Timer(int value)
 
 GLvoid InitBuffer()
 {	
+	framework->InitBuffer();
+
 	glGenVertexArrays(4, VAO_);
 	glGenBuffers(4, VBO_position);
 	glGenBuffers(4, VBO_normal);
@@ -546,6 +559,8 @@ GLvoid InitBuffer()
 GLvoid InitTexture() { //여기 평면이랑 탱크 순서 바꿔뒀어열
 	int widthImage, heightImage, numberOfChannel;
 	stbi_set_flip_vertically_on_load(true);
+
+	framework->InitTexture();
 
 	widthImage = 512;
 	heightImage = 512;

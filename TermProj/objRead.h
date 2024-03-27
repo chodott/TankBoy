@@ -1,17 +1,27 @@
-std::vector< glm::vec3 > outvertex, outnormal;
-std::vector< glm::vec2 > outuv;
+#pragma once
+#include <vector>;
+#include <gl/glew.h>
+#include <gl/freeglut.h>
+#include <gl/freeglut_ext.h>
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <string>
+#include <iostream>
+
+float sumX = 0.0, sumY = 0.0, sumZ = 0.0;
+float aveX, aveY, aveZ;
+float scaleX, scaleY, scaleZ;
+float minX = 0.0, minY = 0.0, minZ = 0.0;
+float maxX = 0.0, maxY = 0.0, maxZ = 0.0;
+float scaleAll;
+float sizeX, sizeY, sizeZ;
+
+std::vector<glm::vec3> outvertex, outnormal;
+std::vector<glm::vec2> outuv;
 
 int loadObj(const char* filename);
 int loadObj_normalize_center(const char* filename);
-	float sumX=0.0, sumY=0.0, sumZ = 0.0;
-	float aveX, aveY, aveZ;
-	float scaleX, scaleY, scaleZ;
-	float minX= 0.0, minY = 0.0, minZ = 0.0;
-	float maxX = 0.0, maxY = 0.0, maxZ = 0.0;
-	float scaleAll;
-
-	float sizeX, sizeY, sizeZ;
-	
 
 int loadObj(const char* filename)
 {
@@ -39,7 +49,7 @@ int loadObj(const char* filename)
 			glm::vec3 vertex;
 			fscanf(objFile, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
 
-			if (vertex.x < minX) minX = vertex.x;	
+			if (vertex.x < minX) minX = vertex.x;
 			if (vertex.y < minY) minY = vertex.y;
 			if (vertex.z < minZ) minZ = vertex.z;
 			if (vertex.x > maxX) maxX = vertex.x;
@@ -69,7 +79,7 @@ int loadObj(const char* filename)
 				printf("File can't be read by our simple parser : ( Try exporting with other options\n");
 				return false;
 			}
-			vertexIndices.push_back(vertexIndex[0]);	
+			vertexIndices.push_back(vertexIndex[0]);
 			vertexIndices.push_back(vertexIndex[1]);
 			vertexIndices.push_back(vertexIndex[2]);
 			uvIndices.push_back(uvIndex[0]);
@@ -125,7 +135,7 @@ int loadObj(const char* filename)
 }
 
 
-int loadObj_normalize_center (const char* filename)
+int loadObj_normalize_center(const char* filename)
 {
 	std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
 	std::vector< glm::vec3 > temp_vertices;
