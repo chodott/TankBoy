@@ -2,14 +2,12 @@
 #include "manage.h"
 #include "tank.h"
 
-void setBlock();
-
 #define PLATE_SIZE 25.0f
 #define PI 3.141592/180
-#define BLOCK_AMOUNT 50
 #define RIFLE_AMOUNT 30
 #define BAZOOKA_AMOUNT 30
 #define ITEM_AMOUNT 10
+#define BLOCK_AMOUNT 50
 
 //평면
 unsigned int ground_texture, wall_texture;
@@ -682,51 +680,6 @@ public:
 		}
 	}
 
-	void draw(unsigned int modelLocation, unsigned int objColorLocation) {
-		if (this->active) {
-			//바주카
-			glm::mat4 BAZOOKA = glm::mat4(1.0f);
-			BAZOOKA = glm::translate(BAZOOKA, glm::vec3(this->x, this->y, this->z));
-			BAZOOKA = glm::rotate(BAZOOKA, -this->rotate + 90.0f, glm::vec3(0, 1, 0));
-			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(BAZOOKA));
-			glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, bazooka_texture);
-			glBindVertexArray(bazooka_VAO);
-			glDrawArrays(GL_TRIANGLES, 0, bazooka_obj);
-
-			//체력바
-			glm::mat4 HP = glm::mat4(1.0f);
-			HP = glm::translate(HP, glm::vec3(this->x, this->y + 1.0f, this->z));
-			HP = glm::rotate(HP, glm::radians(45.0f), glm::vec3(0, 1, 0));
-			HP = glm::scale(HP, glm::vec3(this->hpSize, 0.01f, 0.02f));
-			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(HP));
-			glUniform3f(objColorLocation, 1.0, 0, 0);
-			glBindVertexArray(VAO_[1]);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-
-		}
-		this->bullet[0].bazooka_draw(modelLocation, objColorLocation);
-	}
-
-	void move(float tankX, float tankZ) {
-		float distance = sqrt((tankZ - this->z) * (tankZ - this->z) + (tankX - this->x) * (tankX - this->x)); //간격
-		this->rotate = atan2((tankZ - this->z), (tankX - this->x));
-		if (distance > this->range && this->condition == 0) { //사정거리 보다 멀면 이동
-			this->x += cos(this->rotate) * this->speed;
-			this->z += sin(this->rotate) * this->speed;
-		}
-		else this->attack();
-		//총알 이동
-	}
-
-	void update(float tankX, float tankZ) {
-		if (this->active) {
-			this->move(tankX, tankZ);
-		}
-		this->bullet[0].enemy_move();
-	}
-
 	void hit(int power) {
 		if (this->active) {
 			this->hp -= power;
@@ -883,43 +836,3 @@ RifleMan rifle[RIFLE_AMOUNT];
 BazookaMan bazooka[BAZOOKA_AMOUNT];
 
 Item item[ITEM_AMOUNT];
-
-void setBlock() {
-	map[24][24] = true;
-	map[24][25] = true;
-	map[25][24] = true;
-	map[25][25] = true;
-
-	for (int i = 0; i < BLOCK_AMOUNT; i++) {
-		while (1) {
-			block[i].shape = (rand() % 3) + 1;
-			if (block[i].shape == 1) {
-				int x = rand() % 50;
-				int z = rand() % 50;
-				if (!map[z][x]) {
-					block[i].x = (x - 25) + 0.5f;
-					block[i].y = 0.0f;
-					block[i].z = (z - 25) + 0.5f;
-					map[z][x] = true;
-					break;
-				}
-			}
-			else if (block[i].shape == 2 || block[i].shape == 3) {
-				int x = rand() % 49;
-				int z = rand() % 49;
-				if (!map[z][x]) {
-					block[i].x = (x - 25) + 0.5f;
-					block[i].y = 0.0f;
-					block[i].z = (z - 25) + 0.5f;
-
-					map[z][x] = true;
-					if (block[i].shape == 2)
-						map[z][x + 1] = true;
-					else if (block[i].shape == 3)
-						map[z + 1][x] = true;
-					break;
-				}
-			}
-		}
-	}
-}

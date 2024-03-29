@@ -37,7 +37,6 @@ void main(int argc, char** argv)
 	glLinkProgram(s_program[0]);
 	checkCompileErrors(s_program[0], "PROGRAM");
 
-	setBlock();
 	glEnable(GL_DEPTH_TEST);
 	//InitBuffer();
 	InitBuffer();

@@ -1,5 +1,8 @@
 #include "framework.h"
 #include "stb_image.h"
+#include "Bullet.h"
+
+#define BLOCK_AMOUNT 50
 
 int Framework::loadObj(const char* filename)
 {
@@ -228,6 +231,20 @@ int Framework::loadObj_normalize_center(const char* filename)
 
 void Framework::InitBuffer()
 {
+	//벽
+	glGenVertexArrays(3, &Plate::VAO);
+	glGenBuffers(3, &Plate::VBO);
+	glBindVertexArray(Plate::VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, Plate::VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Plate::plate), Plate::plate, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+
+
 	//탱크(임의)
 	ATank::obj_body = loadObj("tank_body.obj");
 	cout << "탱크 삼각형 수" << ATank::obj_body << endl;
@@ -400,7 +417,33 @@ void Framework::InitBuffer()
 	glEnableVertexAttribArray(2);
 	outuv.clear();
 
+	//Bullet
+	ABullet::bullet_obj = loadObj("bullet_ally.obj");
 
+	glGenBuffers(3, ABullet::bullet_VBO);
+
+	glGenVertexArrays(1, &ABullet::bullet_VAO);
+	glBindVertexArray(ABullet::bullet_VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, ABullet::bullet_VBO[0]);
+	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
+	outvertex.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, ABullet::bullet_VBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+	outnormal.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, ABullet::bullet_VBO[2]);
+	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glEnableVertexAttribArray(2);
+	outuv.clear();
+
+	makeMap();
 }
 
 void Framework::InitTexture()
@@ -411,6 +454,28 @@ void Framework::InitTexture()
 	widthImage = 512;
 	heightImage = 512;
 	numberOfChannel = 0;
+
+	glGenTextures(1, &Wall::ground_texture);
+
+	glBindTexture(GL_TEXTURE_2D, Wall::ground_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	unsigned char* data0 = stbi_load("room_ground.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data0);
+
+	glGenTextures(1, &Wall::wall_texture); //벽
+
+	glBindTexture(GL_TEXTURE_2D, Wall::wall_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	unsigned char* data5 = stbi_load("room_wall.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data5);
+
+	glGenTextures(1, &ATank::body_texture);
 
 	glBindTexture(GL_TEXTURE_2D, ATank::body_texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -470,10 +535,12 @@ void Framework::InitTexture()
 	unsigned char* data7 = stbi_load("bazooka.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data7);
 
+	stbi_image_free(data0);
 	stbi_image_free(data1);
 	stbi_image_free(data2);
 	stbi_image_free(data3);
 	stbi_image_free(data4);
+	stbi_image_free(data5);
 	stbi_image_free(data6);
 	stbi_image_free(data7);
 }
@@ -488,14 +555,130 @@ void Framework::keyInput(int key, bool bPush)
 	controller->keyInput(key, bPush);
 }
 
-void Framework::draw(unsigned int modelLocation, unsigned int objColorLocation)
+void Framework::makeMap()
 {
-	for (auto& object : object_vec) object->draw(modelLocation, objColorLocation);
+	map[24][24] = true;
+	map[24][25] = true;
+	map[25][24] = true;
+	map[25][25] = true;
+
+	for (int i = 0; i < BLOCK_AMOUNT; i++) {
+		Obstacle* block = new Obstacle();
+		object_vec[3].emplace_back(block);
+		int shape = 0;
+		while (1) {
+			shape = (rand() % 3) + 1;
+			if (shape == 1) {
+				int x = rand() % 50;
+				int z = rand() % 50;
+				if (!map[z][x]) {
+					x = (x - 25) + 0.5f;
+					z = (z - 25) + 0.5f;
+					block->setPos(x, z, shape);
+					map[z][x] = true;
+					break;
+				}
+			}
+			else if (shape == 2 || shape == 3) {
+				int x = rand() % 49;
+				int z = rand() % 49;
+				if (!map[z][x]) {
+					x = (x - 25) + 0.5f;
+					z = (z - 25) + 0.5f;
+					block->setPos(x, z, shape);
+					map[z][x] = true;
+					if (shape == 2)
+						map[z][x + 1] = true;
+					else if (shape == 3)
+						map[z + 1][x] = true;
+					break;
+				}
+			}
+		}
+	}
+}
+
+void Framework::spawn(int level)
+{
+	time_t now = time(NULL) - start_time;
+
+	int x = rand() % 50;
+	int z = rand() % 50;
+	x = 25;
+	z = 25;
+	if (map[25][25] == 0) 
+	{
+		x = (x - 25) + 0.5f;
+		z = (z - 25) + 0.5f;
+	}
+
+	if (now - ARifleMan::spawnTime > ARifleMan::spawnLength)
+	{
+		ARifleMan* rifleman = new ARifleMan(x, z, level, controller->getPlayer());
+		ARifleMan::spawnTime = now;
+		object_vec[2].emplace_back(rifleman);
+	}
+
+	if (now - ABazookaMan::spawnTime > ABazookaMan::spawnLength)
+	{
+		ABazookaMan* bazookaman = new ABazookaMan(x, z, level, controller->getPlayer());
+		ABazookaMan::spawnTime = now;
+		object_vec[2].emplace_back(bazookaman);
+	}
+}
+
+void Framework::draw(GLuint s_program)
+{
+	unsigned int modelLocation = glGetUniformLocation(s_program, "modelTransform");
+	unsigned int viewLocation = glGetUniformLocation(s_program, "viewTransform");
+	unsigned int	projLoc = glGetUniformLocation(s_program, "projection");
+	unsigned int viewPos = glGetUniformLocation(s_program, "viewPos");
+	unsigned int objColorLocation = glGetUniformLocation(s_program, "objectColor");
+
+	glm::vec3 playerPos = controller->getPlayerPos();
+	//뷰 변환
+	glm::vec3 cameraPos = glm::vec3(playerPos.x + 5.0f, 10.0f, playerPos.z + 5.0f); //--- 카메라 위치
+	glm::vec3 cameraTarget = glm::vec3(playerPos.x, 0.5f, playerPos.z);
+	glm::vec3 cameraDirection = glm::normalize(-cameraPos + cameraTarget); //--- 카메라 바라보는 방향
+	glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f); //--- 카메라 위쪽 방향
+	glm::vec3 cameraRight = glm::cross(Up, cameraDirection);
+	glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
+
+	glm::mat4 view = glm::mat4(1.0f);
+	view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
+	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+	glUniform3fv(viewPos, 1, glm::value_ptr(cameraPos));
+
+	//투영 변환
+	glm::mat4 proj = glm::mat4(1.0f);
+	proj = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 50.0f);
+	glUniformMatrix4fv(projLoc, 1, GL_FALSE, &proj[0][0]);
+
+	//조명
+	unsigned int lightPosLocation = glGetUniformLocation(s_program, "lightPos");
+	unsigned int lightColorLocation = glGetUniformLocation(s_program, "lightColor");
+	glUniform3f(lightPosLocation, 0, 5.0f, 0);
+	glUniform3f(lightColorLocation, 1.0f, 1.0f, 1.0f);
+
+	for (auto& objects : object_vec)
+	{
+		for (auto& object : objects)
+		{
+			object->draw(modelLocation, objColorLocation);
+		}
+	}
 }
 
 void Framework::update()
 {
-	for (auto& object : object_vec) object->update();
+	spawn(1);
+	for (auto& objects : object_vec)
+	{
+		for (auto& object : objects)
+		{
+			object->update();
+		}
+	}
 }
 
 void Framework::collide_check()

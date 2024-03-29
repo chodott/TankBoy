@@ -2,6 +2,7 @@
 
 void ATank::draw(unsigned int modelLocation, unsigned int objColorLocation)
 {
+	Pawn::draw(modelLocation, objColorLocation);
 	//ÅÊÅ© Ãâ·Â
 	glm::mat4 TANK = glm::mat4(1.0f);
 	TANK = glm::translate(TANK, glm::vec3(this->x, (this->heady / 2.0f), this->z));
@@ -41,15 +42,56 @@ void ATank::draw(unsigned int modelLocation, unsigned int objColorLocation)
 	glBindVertexArray(VAO[3]);
 	glDrawArrays(GL_TRIANGLES, 0, this->obj_cannon);
 
+	for (auto& bullet : bullet_vec) 
+		bullet->draw(modelLocation, objColorLocation);
+
 }
 
-void ATank::move()
+void ATank::moveForward(int direction)
 {
+	moveDirection = direction;
+	bMoved = true;
+}
+
+void ATank::stopMove(int direction)
+{
+	if (direction != moveDirection) return;
+	bMoved = false;
 }
 
 void ATank::update()
 {
 	headR += 5.f * headDirection;
+	tankR += 1.f * bodyDirection;
+
+	if (bMoved == true)
+	{
+		if (abs(tankSpeed) <= maxSpeed)
+			tankSpeed += 0.004f * moveDirection;
+		else tankSpeed = maxSpeed * moveDirection;
+	}
+	else
+	{
+		int sign = tankSpeed < 0 ? -1 : 1;
+		tankSpeed -= 0.006f * sign;
+		if (abs(tankSpeed) <= 0.01f)
+		{
+			moveDirection = 0;
+			tankSpeed = 0.0f;
+		}
+	}
+
+	float nextx = x + cos(-tankR * PI) * (3 * tankSpeed);
+	float nextz = z + sin(-tankR * PI) * (3 * tankSpeed);
+	if (nextx >= 24.6f || nextx <= -24.6f) x = x;
+	else x += cos(-tankR * PI) * tankSpeed;
+	if (nextz >= 24.6f || nextz <= -24.6f) z = z;
+	else z += sin(-tankR * PI) * tankSpeed;
+
+	for (auto& bullet : bullet_vec) bullet->update();
+
+	Pawn::update();
+
 }
 
 void ATank::charge()
@@ -70,7 +112,7 @@ void ATank::charge()
 
 void ATank::attack()
 {
-	
+	bullet_vec.emplace_back(new ABullet(x,y,z, -(tankR + headR)));
 }
 
 void ATank::hit()
@@ -88,6 +130,18 @@ void ATank::stopHead(int direction)
 	if (direction != headDirection) return;
 
 	headDirection = 0;
+}
+
+void ATank::turnBody(int direction)
+{
+	bodyDirection = direction;
+}
+
+void ATank::stopBody(int direction)
+{
+	if (direction != bodyDirection) return;
+
+	bodyDirection = 0;
 }
 
 

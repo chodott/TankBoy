@@ -12,10 +12,6 @@ bool select_button = 0;
 
 
 void draw(unsigned int modelLocation, unsigned int objColorLocation) {
-	tank.draw(modelLocation, objColorLocation);
-	for (int i = 0; i < BLOCK_AMOUNT; i++) block[i].draw(modelLocation, objColorLocation); //장애물 출력
-	for (int i = 0; i < RIFLE_AMOUNT; i++) rifle[i].draw(modelLocation, objColorLocation); //소총병 출력
-	for (int i = 0; i < RIFLE_AMOUNT; i++) bazooka[i].draw(modelLocation, objColorLocation); //바주카병 출력
 	for (int i = 0; i < ITEM_AMOUNT; i++) item[i].draw(modelLocation, objColorLocation); //아이템 출력
 }
 
@@ -23,7 +19,6 @@ void update() {
 	
 	if (gameState == 1) {
 		update_level(start);
-		tank.update();
 		//소총병 스폰
 		if ((time(NULL) - start) % 5 == 0 && (time(NULL) - start) != rifle_check) {
 			for (int i = 0; i < RIFLE_AMOUNT; i++) {
@@ -55,8 +50,6 @@ void update() {
 				}
 			}
 		}
-		for (int i = 0; i < RIFLE_AMOUNT; i++) rifle[i].update(tank.x, tank.z); //소총병 업데이트
-		for (int i = 0; i < BAZOOKA_AMOUNT; i++) bazooka[i].update(tank.x, tank.z); //바주카 업데이트
 		for (int i = 0; i < ITEM_AMOUNT; i++) item[i].update(); //아이템 업데이트
 		collide_check();
 	}

@@ -2,12 +2,15 @@
 #include "tank.h"
 class Controller
 {
-public:
+private:
 	ATank* tank = nullptr;
-	bool keyStates[256]; //키 상태 변수
 
+public:
+	bool keyStates[256]; //키 상태 변수
+	Controller(ATank* tk) : tank(tk) {};
 	void keyInput(unsigned char key, bool bPush);
 	void keyInput(int key, bool bPush);
-	Controller(ATank* tk) : tank(tk) {};
+	glm::vec3 getPlayerPos();
+	inline Object* getPlayer() { return tank; }
 };
 
