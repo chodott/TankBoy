@@ -23,6 +23,5 @@ public:
 
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 	void update();
-
 };
 

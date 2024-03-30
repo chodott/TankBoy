@@ -1,6 +1,8 @@
 #pragma once
-#include "object.h"
-#include "Bullet.h"
+#include "Pawn.h"
+
+#define TANK_SIZE 1.f
+
 class ATank : public Pawn
 {
 public:
@@ -14,7 +16,6 @@ public:
 	static GLuint VAO[4]; //[0]:탱크 몸통 [1]:포물선 [2]:탱크 머리 [3]:탱크 포신
 	static GLuint VBO_pos[4], VBO_nor[4], VBO_tex[4];
 
-	vector<ABullet*> bullet_vec;
 	float maxSpeed = 0.12f;
 	float maxRange = 5.0f;
 	float minRange = 2.0f;
@@ -24,9 +25,7 @@ public:
 	float heady = 0.0f; //머리 애니메이션에 사용
 	float tankSpeed = 0.0f;
 	float reload = 1.0f;
-	float hp = 0;
 	int head_frame = 0; //머리 흔들리는 애니메이션에 사용
-	int power = 5;
 	int timer = 0;
 	int headDirection = 0;	//1 : Left / -1: Right
 	int bodyDirection = 0;
@@ -37,6 +36,14 @@ public:
 	bool supermode = false;
 	bool death = false;
 
+	ATank() 
+	{
+		setMaxHp(20.f);
+		hpbar->setType(false);
+		setBoundary(TANK_SIZE, TANK_SIZE);
+		power = 5.f;
+	}
+
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 
 	void moveForward(int direction);
@@ -44,6 +51,8 @@ public:
 	void stopMove(int direction);
 
 	void update();
+
+	void block();
 
 	void charge();
 
@@ -60,5 +69,4 @@ public:
 	void stopBody(int direction);
 
 	void upgrade(int skill);
-
 };

@@ -1,32 +1,28 @@
 #pragma once
 #include <Windows.h>
-#include "object.h"
-#include "Bullet.h"
+#include "Pawn.h"
 
-class Enemy : public Object
+#define ENEMY_SIZE 1.0f
+
+class Enemy : public Pawn
 {
 public:
 	time_t attacked_time = 0;
 	Object* target = nullptr;
-	vector<ABullet*> bullet_vec;
 	float speed = 0.01;
 	float rotate = 0;
 	float range = 4.0f;
-	float size = 1.0f;
-	float hpSize = 0.2f;
 	float reloadLength = 1.f;
-	float hp;
-	int power = 0;
 	int condition = 0;
-	bool active = false;
 
-	Enemy(float x, float z, Object* obj) :  power(power), target(obj)
+	Enemy(float x, float z, Object* obj) : target(obj)
 	{
 		this->x = x;
 		y = 0.f;
 		this->z = z;
-		this->hp = hp;
+		setBoundary(ENEMY_SIZE, ENEMY_SIZE);
 	}
+	void block();
 	void update();
 	void attack();
 };
@@ -43,7 +39,7 @@ public:
 
 	ARifleMan(float x, float z, int level, Object* obj) : Enemy(x, z, obj) 
 	{
-		hp = level * 5.f;
+		setMaxHp(level * 5.f);
 		power = level;
 	};
 
@@ -65,7 +61,7 @@ public:
 
 	ABazookaMan(float x, float z, int level, Object* obj) : Enemy(x, z, obj) 
 	{
-		hp = level * 7.f;
+		setMaxHp(level * 7.f);
 		power = level * 2.f;
 	};
 

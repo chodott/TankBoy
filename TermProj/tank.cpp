@@ -80,6 +80,8 @@ void ATank::update()
 			tankSpeed = 0.0f;
 		}
 	}
+	prevX = x;
+	prevZ = z;
 
 	float nextx = x + cos(-tankR * PI) * (3 * tankSpeed);
 	float nextz = z + sin(-tankR * PI) * (3 * tankSpeed);
@@ -91,7 +93,13 @@ void ATank::update()
 	for (auto& bullet : bullet_vec) bullet->update();
 
 	Pawn::update();
+	cout << hp << endl;
+}
 
+void ATank::block()
+{
+	x = prevX;
+	z = prevZ;
 }
 
 void ATank::charge()
@@ -159,6 +167,8 @@ void ATank::upgrade(int skill)
 		break;
 	}
 }
+
+
 
 int ATank::obj_body = 0;
 int ATank::obj_head = 0;

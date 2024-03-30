@@ -232,10 +232,10 @@ int Framework::loadObj_normalize_center(const char* filename)
 void Framework::InitBuffer()
 {
 	//벽
-	glGenVertexArrays(3, &Plate::VAO);
-	glGenBuffers(3, &Plate::VBO);
-	glBindVertexArray(Plate::VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, Plate::VBO);
+	glGenVertexArrays(3, Plate::VAO);
+	glGenBuffers(3, Plate::VBO);
+	glBindVertexArray(Plate::VAO[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, Plate::VBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Plate::plate), Plate::plate, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -243,6 +243,15 @@ void Framework::InitBuffer()
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
+
+	//큐브
+	glBindVertexArray(Plate::VAO[1]);
+	glBindBuffer(GL_ARRAY_BUFFER, Plate::VBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Plate::cube), Plate::cube, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 
 	//탱크(임의)
@@ -564,7 +573,7 @@ void Framework::makeMap()
 
 	for (int i = 0; i < BLOCK_AMOUNT; i++) {
 		Obstacle* block = new Obstacle();
-		object_vec[3].emplace_back(block);
+		object_vec[2].emplace_back(block);
 		int shape = 0;
 		while (1) {
 			shape = (rand() % 3) + 1;
@@ -616,14 +625,14 @@ void Framework::spawn(int level)
 	{
 		ARifleMan* rifleman = new ARifleMan(x, z, level, controller->getPlayer());
 		ARifleMan::spawnTime = now;
-		object_vec[2].emplace_back(rifleman);
+		object_vec[1].emplace_back(rifleman);
 	}
 
 	if (now - ABazookaMan::spawnTime > ABazookaMan::spawnLength)
 	{
 		ABazookaMan* bazookaman = new ABazookaMan(x, z, level, controller->getPlayer());
 		ABazookaMan::spawnTime = now;
-		object_vec[2].emplace_back(bazookaman);
+		object_vec[1].emplace_back(bazookaman);
 	}
 }
 
@@ -679,10 +688,47 @@ void Framework::update()
 			object->update();
 		}
 	}
+	checkCollide();
+	deleteTrash();
 }
 
-void Framework::collide_check()
+void Framework::checkCollide()
 {
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+		{
+			if (i == j) continue;
+			for (auto& obj_a : object_vec[i])
+			{
+				for (auto& obj_b : object_vec[j])
+				{
+					bool bCrashed = obj_a->returnCollide(obj_b);
+					if (bCrashed == false) continue;
+					obj_a->block();
+					obj_b->block();
+				}
+			}
+		}
+	}
+}
+
+void Framework::deleteTrash()
+{
+	vector<Object*>& enemy_vec = object_vec[1];
+	for (int i=0; i < enemy_vec.size(); ++i)
+	{
+		if(((Enemy*)enemy_vec[i])->hp > 0) continue;
+
+		deleteEnemy_pq.push(i);
+	}
+
+	while (!deleteEnemy_pq.empty())
+	{
+		int index = deleteEnemy_pq.top();
+		deleteEnemy_pq.pop();
+		enemy_vec.erase(enemy_vec.begin() + index);
+	}
 }
 
 void Framework::update_level(time_t start)

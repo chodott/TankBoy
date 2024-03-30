@@ -1,6 +1,8 @@
 #pragma once
 #include "object.h"
 
+#define OBSTACLE_SIZE 1.f
+
 class Obstacle : public Object
 {
 public:
@@ -19,7 +21,9 @@ public:
 		this->x = x;
 		this->z = z;
 		this->type = type;
+		setBoundary(OBSTACLE_SIZE, OBSTACLE_SIZE);
 	}
+	void setBoundary(float width, float height);
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 };
 

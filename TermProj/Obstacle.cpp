@@ -1,5 +1,21 @@
 #include "Obstacle.h"
 
+void Obstacle::setBoundary(float width, float height)
+{
+	width_volume = width;
+	height_volume = height;
+
+	switch (type)
+	{
+	case 2:
+		width_volume *= 2.f;
+		break;
+	case 3:
+		height_volume *= 2.f;
+		break;
+	}
+}
+
 void Obstacle::draw(unsigned int modelLocation, unsigned int objColorLocation)
 {
 	if (type == 3) block_y = -90.0f;
@@ -18,6 +34,7 @@ void Obstacle::draw(unsigned int modelLocation, unsigned int objColorLocation)
 		glBindVertexArray(VAO[1]);
 		glDrawArrays(GL_TRIANGLES, 0, block_obj[1]);
 	}
+
 }
 
 GLuint Obstacle::VAO[2];
@@ -40,7 +57,7 @@ void Wall::draw(unsigned int modelLocation, unsigned int objColorLocation)
 	glActiveTexture(GL_TEXTURE0);
 	if(type == 0) glBindTexture(GL_TEXTURE_2D, ground_texture);
 	else glBindTexture(GL_TEXTURE_2D, wall_texture);
-	glBindVertexArray(VAO);
+	glBindVertexArray(VAO[0]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 }

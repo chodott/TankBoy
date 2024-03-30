@@ -8,6 +8,7 @@
 #include <gl/freeglut.h>
 #include <gl/freeglut_ext.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <algorithm>
 using namespace std;
 
 #define PI 3.141592/180
@@ -17,48 +18,45 @@ class Object
 {
 public:
 
-	float x, y, z;
+	float x = 0;
+	float y = 0;
+	float z = 0;
+
+	float width_volume = 0.f;
+	float height_volume = 0.f;
 
 	virtual void draw(unsigned int modelLocation, unsigned int objColorLocation);
 
 	void move();
 
 	virtual void update();
+
+	virtual void setBoundary(float width, float height);
+
+	virtual void block();
+
+	virtual bool returnCollide(Object* obj);
 };
 
 
 class Plate : public Object
 {
 public:
-	static GLuint VAO;
-	static GLuint VBO;
+	static GLuint VAO[2];
+	static GLuint VBO[2];
 	static float plate[48];
+	static float cube[216];
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 };
 
 class HpBar : public Plate
 {
 public:
+	float maxHp;
+	float size;
+	bool bEnemy = true;
+
+	inline void setType(bool b) { bEnemy = b; }
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
-	void update(float x, float y, float z);
-};
-
-class Pawn : public Object
-{
-public:
-
-	HpBar* hpbar = nullptr;
-	int maxHp;
-	int hp;
-
-	Pawn() { hpbar = new HpBar(); };
-	void setPos(float x, float y, float z)
-	{
-		this->x = x;
-		this->y = y;
-		this->z = z;
-	}
-
-	void draw(unsigned int modelLocation, unsigned int objColorLocation);
-	void update();
+	void update(float x, float y, float z,  float curHp);
 };

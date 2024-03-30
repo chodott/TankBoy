@@ -1,6 +1,7 @@
 #pragma once
 #include <Windows.h>
 #include <vector>
+#include <queue>
 #include "object.h"
 #include "tank.h"
 #include "enemy.h"
@@ -31,6 +32,7 @@ public:
 	
 	vector<vector<Object*>> object_vec;
 	Controller* controller;
+	 priority_queue<int, vector<int>, greater<int>> deleteEnemy_pq;
 
 	int loadObj(const char* filename);
 	int loadObj_normalize_center(const char* filename);
@@ -38,13 +40,13 @@ public:
 	Framework() { 
 		start_time = time(NULL); //시작 시간 설정
 		ATank* playerTank = new ATank();
-		object_vec = { {}, {}, {} };
-		object_vec.emplace_back(vector<Object*>{playerTank});
+		object_vec.resize(5);
+		object_vec[0].emplace_back(playerTank);
 		controller = new Controller(playerTank);
 		Wall* leftWall = new Wall(-25.f, 25.f, 0.f, 1);
 		Wall* rightWall = new Wall(0.f, 25.f, -25.f, -1);
 		Wall* floor = new Wall(0, 0, 0, 0);
-		object_vec.emplace_back(vector<Object*>{leftWall, rightWall, floor});
+		object_vec[4] = (vector<Object*>{leftWall, rightWall, floor});
 		fill(&map[0][0], &map[49][49], false);
 
 	}
@@ -58,7 +60,8 @@ public:
 	void spawn(int level);
 	void draw(GLuint s_program);
 	void update();
-	void collide_check();
+	void checkCollide();
+	void deleteTrash();
 	void update_level(time_t start);
 	bool select_button = 0;
 };

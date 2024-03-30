@@ -1,29 +1,37 @@
 #include "enemy.h"
 
 
+void Enemy::block()
+{
+}
+
 void Enemy::update()
 {
-	float distance = sqrt((target->z - this->z) * (target->z - this->z) + (target->x - this->x) * (target->x - this->x)); //간격
-	this->rotate = atan2((target->z - this->z), (target->x - this->x));
+	prevX = x;
+	prevZ = z;
+	float distance = sqrt((target->z - z) * (target->z - z) + (target->x -x) * (target->x - x)); //간격
+	float r = atan2((target->z - z), (target->x - x));
+	rotate = -r * 60;
 	if (distance > this->range && this->condition == 0) { //사정거리 보다 멀면 이동
-		this->x += cos(this->rotate) * this->speed;
-		this->z += sin(this->rotate) * this->speed;
+		x += cos(r) * speed;
+		z += sin(r) * speed;
 	}
 	else this->attack();
+
 
 	for (auto& bullet : bullet_vec)
 	{
 		bullet->update();
 	}
 
+	Pawn::update();
 }
 
 void Enemy::attack()
 {
 	time_t now = time(NULL);
 	if (now - attacked_time < reloadLength) return;
-
-	bullet_vec.emplace_back(new ABullet(x, y, z, glm::radians(-rotate)));
+	bullet_vec.emplace_back(new ABullet(x, y, z, -rotate));
 	attacked_time = now;
 }
 
@@ -33,7 +41,8 @@ void ARifleMan::draw(unsigned int modelLocation, unsigned int objColorLocation)
 	//라이플맨
 	glm::mat4 RIFLE = glm::mat4(1.0f);
 	RIFLE = glm::translate(RIFLE, glm::vec3(x, y, z));
-	RIFLE = glm::rotate(RIFLE, -this->rotate + 90.0f, glm::vec3(0, 1, 0));
+
+	RIFLE = glm::rotate(RIFLE, glm::radians(rotate + 90.f), glm::vec3(0, 1, 0));
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(RIFLE));
 	glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
 	glActiveTexture(GL_TEXTURE0);
@@ -45,6 +54,8 @@ void ARifleMan::draw(unsigned int modelLocation, unsigned int objColorLocation)
 	{
 		bullet->draw(modelLocation, objColorLocation);
 	}
+
+	Pawn::draw(modelLocation, objColorLocation);
 }
 
 
@@ -52,7 +63,7 @@ void ABazookaMan::draw(unsigned int modelLocation, unsigned int objColorLocation
 {
 	glm::mat4 BAZOOKA = glm::mat4(1.0f);
 	BAZOOKA = glm::translate(BAZOOKA, glm::vec3(this->x, this->y, this->z));
-	BAZOOKA = glm::rotate(BAZOOKA, -rotate + 90.0f, glm::vec3(0, 1, 0));
+	BAZOOKA = glm::rotate(BAZOOKA, glm::radians(rotate + 90.f), glm::vec3(0, 1, 0));
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(BAZOOKA));
 	glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
 	glActiveTexture(GL_TEXTURE0);
@@ -60,6 +71,12 @@ void ABazookaMan::draw(unsigned int modelLocation, unsigned int objColorLocation
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, bazooka_obj);
 
+	for (auto& bullet : bullet_vec)
+	{
+		bullet->draw(modelLocation, objColorLocation);
+	}
+
+	Pawn::draw(modelLocation, objColorLocation);
 }
 
 
