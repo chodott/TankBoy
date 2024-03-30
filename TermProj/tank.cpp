@@ -1,4 +1,16 @@
 #include "Tank.h"
+int ATank::obj_body = 0;
+int ATank::obj_head = 0;
+int ATank::obj_cannon = 0;
+
+unsigned int ATank::body_texture = 0;
+unsigned int ATank::head_texture = 0;
+unsigned int	ATank::cannon_texture = 0;
+
+GLuint ATank::VAO[4];
+GLuint ATank::VBO_pos[4];
+GLuint ATank::VBO_nor[4];
+GLuint ATank::VBO_tex[4];
 
 void ATank::draw(unsigned int modelLocation, unsigned int objColorLocation)
 {
@@ -6,7 +18,7 @@ void ATank::draw(unsigned int modelLocation, unsigned int objColorLocation)
 	//ÅÊÅ© Ãâ·Â
 	glm::mat4 TANK = glm::mat4(1.0f);
 	TANK = glm::translate(TANK, glm::vec3(this->x, (this->heady / 2.0f), this->z));
-	TANK = glm::rotate(TANK, glm::radians(this->tankR + 90.0f), glm::vec3(0, 1, 0));
+	TANK = glm::rotate(TANK, glm::radians(tankR + DEFAULT_ROT), glm::vec3(0, 1, 0));
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(TANK));
 	glUniform3f(objColorLocation, 0.7, 0.7, 0.7);
 	glActiveTexture(GL_TEXTURE0);
@@ -24,7 +36,7 @@ void ATank::draw(unsigned int modelLocation, unsigned int objColorLocation)
 	}
 	this->head_frame++;
 	HEAD = glm::translate(HEAD, glm::vec3(x, heady, z));
-	HEAD = glm::rotate(HEAD, glm::radians(headR + tankR + 90.0f), glm::vec3(0, 1, 0));
+	HEAD = glm::rotate(HEAD, glm::radians(headR + tankR + DEFAULT_ROT), glm::vec3(0, 1, 0));
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(HEAD));
 	glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
 	glActiveTexture(GL_TEXTURE0);
@@ -41,10 +53,6 @@ void ATank::draw(unsigned int modelLocation, unsigned int objColorLocation)
 	glBindTexture(GL_TEXTURE_2D, this->cannon_texture);
 	glBindVertexArray(VAO[3]);
 	glDrawArrays(GL_TRIANGLES, 0, this->obj_cannon);
-
-	for (auto& bullet : bullet_vec) 
-		bullet->draw(modelLocation, objColorLocation);
-
 }
 
 void ATank::moveForward(int direction)
@@ -61,6 +69,8 @@ void ATank::stopMove(int direction)
 
 void ATank::update()
 {
+	Pawn::update();
+
 	headR += 5.f * headDirection;
 	tankR += 1.f * bodyDirection;
 
@@ -83,23 +93,11 @@ void ATank::update()
 	prevX = x;
 	prevZ = z;
 
-	float nextx = x + cos(-tankR * PI) * (3 * tankSpeed);
-	float nextz = z + sin(-tankR * PI) * (3 * tankSpeed);
-	if (nextx >= 24.6f || nextx <= -24.6f) x = x;
-	else x += cos(-tankR * PI) * tankSpeed;
-	if (nextz >= 24.6f || nextz <= -24.6f) z = z;
-	else z += sin(-tankR * PI) * tankSpeed;
+	float nextx = x + cos(-tankR * PI) * (tankSpeed);
+	float nextz = z + sin(-tankR * PI) * (tankSpeed);
 
-	for (auto& bullet : bullet_vec) bullet->update();
-
-	Pawn::update();
-	cout << hp << endl;
-}
-
-void ATank::block()
-{
-	x = prevX;
-	z = prevZ;
+	x = (nextx >= 24.6f || nextx <= -24.6f) ? x : nextx;
+	z = (nextz >= 24.6f || nextz <= -24.6f) ? z : nextz;
 }
 
 void ATank::charge()
@@ -123,9 +121,10 @@ void ATank::attack()
 	bullet_vec.emplace_back(new ABullet(x,y,z, -(tankR + headR)));
 }
 
-void ATank::hit()
+void ATank::hit(int power)
 {
-
+	if (supermode) return;
+	Pawn::hit(power);
 }
 
 void ATank::turnHead(int direction)
@@ -153,9 +152,10 @@ void ATank::stopBody(int direction)
 }
 
 
-void ATank::upgrade(int skill)
+void ATank::upgrade()
 {
-	switch (skill)
+	int type = rand() % UPGRADE_CNT;
+	switch (type)
 	{
 	case 0: power += 1; break;
 	case 1: if (reload > 0.3); reload -= 0.1f; break;
@@ -168,17 +168,17 @@ void ATank::upgrade(int skill)
 	}
 }
 
+bool ATank::returnCollide(Object* obj)
+{
+	Item* item = dynamic_cast<Item*>(obj);
+	bool bCrashed = Pawn::returnCollide(obj);
+	if (bCrashed == false) return bCrashed;
+	if (item != nullptr)
+	{
+		upgrade();
+		item->active = false;
+	}
+	return bCrashed;
+}
 
 
-int ATank::obj_body = 0;
-int ATank::obj_head = 0;
-int ATank::obj_cannon = 0;
-
-unsigned int ATank::body_texture = 0;
-unsigned int ATank::head_texture = 0;
-unsigned int	ATank::cannon_texture = 0;
-
-GLuint ATank::VAO[4];
-GLuint ATank::VBO_pos[4];
-GLuint ATank::VBO_nor[4];
-GLuint ATank::VBO_tex[4];

@@ -31,8 +31,6 @@ GLuint VBO_texture[4];
 
 int gameState = 0;
 
-
-
 //bool map[100][100]; // ∏ 
 bool map[50][50]; // ∏  ªÁ¿Ã¡Ó 50x50
 

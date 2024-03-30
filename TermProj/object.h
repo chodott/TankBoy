@@ -13,6 +13,16 @@ using namespace std;
 
 #define PI 3.141592/180
 #define PLATE_SIZE 25.0f
+#define DEFAULT_ROT 90.f
+
+enum EObjectType
+{
+	TANK,
+	ENEMY,
+	OBSTACLE,
+	ITEM,
+	WALL
+};
 
 class Object
 {
@@ -24,6 +34,11 @@ public:
 
 	float width_volume = 0.f;
 	float height_volume = 0.f;
+	float rot = 0.f;
+	bool active = true;
+
+	Object() {}
+	Object(float x, float z) : x(x), z(z) {}
 
 	virtual void draw(unsigned int modelLocation, unsigned int objColorLocation);
 
@@ -38,6 +53,15 @@ public:
 	virtual bool returnCollide(Object* obj);
 };
 
+class Title : public Object
+{
+public:
+	static GLuint VAO[3];
+	static GLuint VBO[3][3];
+	static int title_obj[3];
+	static unsigned int title_texture;
+};
+
 
 class Plate : public Object
 {
@@ -46,8 +70,12 @@ public:
 	static GLuint VBO[2];
 	static float plate[48];
 	static float cube[216];
+
+	Plate() : Object() {}
+	Plate(float x, float z) : Object(x, z) {}
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 };
+
 
 class HpBar : public Plate
 {

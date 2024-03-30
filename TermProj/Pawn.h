@@ -7,7 +7,7 @@ public:
 	HpBar* hpbar = nullptr;
 	int maxHp = 1.f;
 	int hp = 1.f;
-	int power = 0;
+	int power = 1;
 	float prevX;
 	float prevZ;
 
@@ -19,10 +19,11 @@ public:
 		this->y = y;
 		this->z = z;
 	}
-	void hit(float power) { hp -= power; }
+	virtual void hit(float power);
 
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 	void update();
+	void block();
 	bool returnCollide(Object* obj);
 };
 

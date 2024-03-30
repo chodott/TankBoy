@@ -1,7 +1,9 @@
 #pragma once
 #include "Pawn.h"
+#include "Item.h"
 
 #define TANK_SIZE 1.f
+#define UPGRADE_CNT 5
 
 class ATank : public Pawn
 {
@@ -34,7 +36,6 @@ public:
 	bool bMoved = false;
 	bool bPushedSpace = false;
 	bool supermode = false;
-	bool death = false;
 
 	ATank() 
 	{
@@ -45,28 +46,18 @@ public:
 	}
 
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
+	void update();
+	void hit(int power);
 
 	void moveForward(int direction);
-
 	void stopMove(int direction);
-
-	void update();
-
-	void block();
-
 	void charge();
-
 	void attack();
-
-	void hit();
-
 	void turnHead(int direction);
-
 	void stopHead(int direction);
-
 	void turnBody(int direction);
-
 	void stopBody(int direction);
+	void upgrade();
 
-	void upgrade(int skill);
+	bool returnCollide(Object* obj);
 };

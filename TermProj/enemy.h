@@ -3,6 +3,8 @@
 #include "Pawn.h"
 
 #define ENEMY_SIZE 1.0f
+#define RIFLE_RANGE 4.f;
+#define BAZOOKA_RANGE 7.f
 
 class Enemy : public Pawn
 {
@@ -10,10 +12,8 @@ public:
 	time_t attacked_time = 0;
 	Object* target = nullptr;
 	float speed = 0.01;
-	float rotate = 0;
 	float range = 4.0f;
 	float reloadLength = 1.f;
-	int condition = 0;
 
 	Enemy(float x, float z, Object* obj) : target(obj)
 	{
@@ -22,7 +22,8 @@ public:
 		this->z = z;
 		setBoundary(ENEMY_SIZE, ENEMY_SIZE);
 	}
-	void block();
+
+	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 	void update();
 	void attack();
 };
@@ -41,6 +42,7 @@ public:
 	{
 		setMaxHp(level * 5.f);
 		power = level;
+		range = RIFLE_RANGE;
 	};
 
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
@@ -63,10 +65,9 @@ public:
 	{
 		setMaxHp(level * 7.f);
 		power = level * 2.f;
+		range = BAZOOKA_RANGE;
 	};
 
-
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
-
 };
 

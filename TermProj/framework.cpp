@@ -452,6 +452,69 @@ void Framework::InitBuffer()
 	glEnableVertexAttribArray(2);
 	outuv.clear();
 
+	//아이템
+	Item::item_obj = loadObj("item.obj");
+
+	glGenBuffers(3, Item::VBO);
+
+	glGenVertexArrays(1, &Item::VAO);
+	glBindVertexArray(Item::VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, Item::VBO[0]);
+	glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
+	outvertex.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, Item::VBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(1);
+	outnormal.clear();
+
+	glBindBuffer(GL_ARRAY_BUFFER, Item::VBO[2]);
+	glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glEnableVertexAttribArray(2);
+	outuv.clear();
+
+	//UI
+
+
+	Title::title_obj[0] = loadObj("title_logo.obj");
+	Title::title_obj[1] = loadObj("title_start.obj");
+	Title::title_obj[2] = loadObj("title_quit.obj");
+
+	for (int i = 0; i < 3; ++i)
+	{
+		switch (i)
+		{
+		case 0: Title::title_obj[i] = loadObj("title_logo.obj"); break;
+		case 1:Title::title_obj[i] = loadObj("title_start.obj"); break;
+		case 2:Title::title_obj[i] = loadObj("title_quit.obj"); break;
+		}
+		glGenVertexArrays(1, &Title::VAO[i]);
+
+		glGenBuffers(3, Title::VBO[i]);
+		glBindVertexArray(Title::VAO[i]);
+		glBindBuffer(GL_ARRAY_BUFFER, Title::VBO[i][0]);
+		glBufferData(GL_ARRAY_BUFFER, outvertex.size() * sizeof(glm::vec3), &outvertex[0], GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+		glEnableVertexAttribArray(0);
+		outvertex.clear();
+
+		glBindBuffer(GL_ARRAY_BUFFER, Title::VBO[i][1]);
+		glBufferData(GL_ARRAY_BUFFER, outnormal.size() * sizeof(glm::vec3), &outnormal[0], GL_STATIC_DRAW);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+		glEnableVertexAttribArray(1);
+		outnormal.clear();
+
+		glBindBuffer(GL_ARRAY_BUFFER, Title::VBO[i][2]);
+		glBufferData(GL_ARRAY_BUFFER, outuv.size() * sizeof(glm::vec2), &outuv[0], GL_STATIC_DRAW);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+		glEnableVertexAttribArray(2);
+		outuv.clear();
+	}
 	makeMap();
 }
 
@@ -544,6 +607,27 @@ void Framework::InitTexture()
 	unsigned char* data7 = stbi_load("bazooka.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data7);
 
+	glGenTextures(1, &Item::item_texture); //소총병, 탄환 색
+
+	glBindTexture(GL_TEXTURE_2D, Item::item_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	unsigned char* data8 = stbi_load("item.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data8);
+
+	glGenTextures(1, &Title::title_texture);
+
+	glBindTexture(GL_TEXTURE_2D, Title::title_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	unsigned char* data9 = stbi_load("title_diffuse.jpg", &widthImage, &heightImage, &numberOfChannel, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, widthImage, heightImage, 0, GL_RGB, GL_UNSIGNED_BYTE, data9);
+
+
 	stbi_image_free(data0);
 	stbi_image_free(data1);
 	stbi_image_free(data2);
@@ -552,15 +636,33 @@ void Framework::InitTexture()
 	stbi_image_free(data5);
 	stbi_image_free(data6);
 	stbi_image_free(data7);
+	stbi_image_free(data8);
+	stbi_image_free(data9);
 }
 
 void Framework::keyInput(unsigned char key, bool bPush)
 {
+	if (bStarted == false && key == ' ')
+	{
+		if (onStartButton) bStarted = true;
+		else exit(1);
+	}
 	controller->keyInput(key, bPush);
 }
 
 void Framework::keyInput(int key, bool bPush)
 {
+	if (bStarted == false && bPush)
+	{
+		switch (key)
+		{
+		case GLUT_KEY_UP:
+		case GLUT_KEY_DOWN:
+			onStartButton = onStartButton ? false : true;
+			break;
+		}
+		return;
+	}
 	controller->keyInput(key, bPush);
 }
 
@@ -609,12 +711,12 @@ void Framework::makeMap()
 
 void Framework::spawn(int level)
 {
+	if (bStarted == false) return;
+
 	time_t now = time(NULL) - start_time;
 
 	int x = rand() % 50;
 	int z = rand() % 50;
-	x = 25;
-	z = 25;
 	if (map[25][25] == 0) 
 	{
 		x = (x - 25) + 0.5f;
@@ -625,14 +727,21 @@ void Framework::spawn(int level)
 	{
 		ARifleMan* rifleman = new ARifleMan(x, z, level, controller->getPlayer());
 		ARifleMan::spawnTime = now;
-		object_vec[1].emplace_back(rifleman);
+		object_vec[ENEMY].emplace_back(rifleman);
 	}
 
 	if (now - ABazookaMan::spawnTime > ABazookaMan::spawnLength)
 	{
 		ABazookaMan* bazookaman = new ABazookaMan(x, z, level, controller->getPlayer());
 		ABazookaMan::spawnTime = now;
-		object_vec[1].emplace_back(bazookaman);
+		object_vec[ENEMY].emplace_back(bazookaman);
+	}
+
+	if (now - Item::spawnTime > Item::spawnLength)
+	{
+		Item* item = new Item(x, z);
+		Item::spawnTime = now;
+		object_vec[ITEM].emplace_back(item);
 	}
 }
 
@@ -669,6 +778,39 @@ void Framework::draw(GLuint s_program)
 	glUniform3f(lightPosLocation, 0, 5.0f, 0);
 	glUniform3f(lightColorLocation, 1.0f, 1.0f, 1.0f);
 
+	glBindTexture(GL_TEXTURE_2D, Title::title_texture);
+	glm::mat4 GAME_TITLE = glm::mat4(1.0f);
+	GAME_TITLE = glm::translate(GAME_TITLE, glm::vec3(0.0, 3.0, 0.0));
+	GAME_TITLE = glm::rotate(GAME_TITLE, glm::radians(45.0f), glm::vec3(0, 1, 0));
+	GAME_TITLE = glm::rotate(GAME_TITLE, glm::radians(-45.0f), glm::vec3(1, 0, 0));
+	GAME_TITLE = glm::scale(GAME_TITLE, glm::vec3(5, 5, 5));
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(GAME_TITLE));
+	glUniform3f(objColorLocation, 0.6, 0.6, 0.6);
+	glBindVertexArray(Title::VAO[0]);
+	glDrawArrays(GL_TRIANGLES, 0, Title::title_obj[0]);
+
+	glm::mat4 GAME_START = glm::mat4(1.0f);
+	GAME_START = glm::translate(GAME_START, glm::vec3(3.0, 5.0, 3.0));
+	GAME_START = glm::rotate(GAME_START, glm::radians(45.0f), glm::vec3(0, 1, 0));
+	GAME_START = glm::rotate(GAME_START, glm::radians(-45.0f), glm::vec3(1, 0, 0));
+	GAME_START = glm::scale(GAME_START, glm::vec3(5, 5, 5));
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(GAME_START));
+	if (onStartButton) glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
+	else glUniform3f(objColorLocation, 0.6, 0.6, 0.6);
+	glBindVertexArray(Title::VAO[1]);
+	glDrawArrays(GL_TRIANGLES, 0, Title::title_obj[1]);
+
+	glm::mat4 GAME_END = glm::mat4(1.0f);
+	GAME_END = glm::translate(GAME_END, glm::vec3(3.4, 4.5, 3.4));
+	GAME_END = glm::rotate(GAME_END, glm::radians(45.0f), glm::vec3(0, 1, 0));
+	GAME_END = glm::rotate(GAME_END, glm::radians(-45.0f), glm::vec3(1, 0, 0));
+	GAME_END = glm::scale(GAME_END, glm::vec3(5, 5, 5));
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(GAME_END));
+	if (!onStartButton) glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
+	else glUniform3f(objColorLocation, 0.6, 0.6, 0.6);
+	glBindVertexArray(Title::VAO[2]);
+	glDrawArrays(GL_TRIANGLES, 0, Title::title_obj[2]);
+
 	for (auto& objects : object_vec)
 	{
 		for (auto& object : objects)
@@ -690,13 +832,14 @@ void Framework::update()
 	}
 	checkCollide();
 	deleteTrash();
+	update_level();
 }
 
 void Framework::checkCollide()
 {
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i <= ITEM; ++i)
 	{
-		for (int j = 0; j < 3; ++j)
+		for (int j = 0; j <=ITEM; ++j)
 		{
 			if (i == j) continue;
 			for (auto& obj_a : object_vec[i])
@@ -715,22 +858,32 @@ void Framework::checkCollide()
 
 void Framework::deleteTrash()
 {
-	vector<Object*>& enemy_vec = object_vec[1];
-	for (int i=0; i < enemy_vec.size(); ++i)
-	{
-		if(((Enemy*)enemy_vec[i])->hp > 0) continue;
-
-		deleteEnemy_pq.push(i);
+	for (int type = ENEMY; type <= ITEM; ++type)
+	{	//제거해야할 오브젝트 추출
+		vector<Object*>& objects = object_vec[type];
+		for (int index=0; index < objects.size(); ++index)
+		{
+			if (objects[index]->active == true) continue;
+			delete_pq.push(make_pair(EObjectType(type), index));
+		}
 	}
 
-	while (!deleteEnemy_pq.empty())
-	{
-		int index = deleteEnemy_pq.top();
-		deleteEnemy_pq.pop();
-		enemy_vec.erase(enemy_vec.begin() + index);
+	while (!delete_pq.empty())
+	{	//오브젝트 벡터에서 제거
+		auto& info = delete_pq.top();
+		delete_pq.pop();
+		int type = info.first;
+		int index = info.second;
+		vector<Object*>& objects = object_vec[type];
+		objects.erase(objects.begin() + index);
 	}
 }
 
-void Framework::update_level(time_t start)
+void Framework::update_level()
 {
+	time_t startToNow = time(NULL) - start_time;
+	if (startToNow >= 80 && GAME_LEVEL != 5) GAME_LEVEL = 5;
+	else 	if (startToNow >= 60 && GAME_LEVEL != 4) GAME_LEVEL = 4;
+	else 	if (startToNow >= 40 && GAME_LEVEL != 3) GAME_LEVEL = 3;
+	else 	if (startToNow >= 20 && GAME_LEVEL != 2) GAME_LEVEL = 2;
 }
