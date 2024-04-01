@@ -61,6 +61,7 @@ void ARifleMan::draw(unsigned int modelLocation, unsigned int objColorLocation)
 
 void ABazookaMan::draw(unsigned int modelLocation, unsigned int objColorLocation)
 {
+	Enemy::draw(modelLocation, objColorLocation);
 	glBindTexture(GL_TEXTURE_2D, bazooka_texture);
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, bazooka_obj);

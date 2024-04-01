@@ -875,6 +875,7 @@ void Framework::deleteTrash()
 		int type = info.first;
 		int index = info.second;
 		vector<Object*>& objects = object_vec[type];
+		delete(objects[index]);
 		objects.erase(objects.begin() + index);
 	}
 }

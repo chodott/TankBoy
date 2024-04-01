@@ -12,6 +12,10 @@ public:
 	float prevZ;
 
 	Pawn() { hpbar = new HpBar(); };
+	~Pawn()
+	{
+		for (auto& bullet : bullet_vec) delete(bullet);
+	}
 	void setMaxHp(float hp);
 	void setPos(float x, float y, float z)
 	{
@@ -24,6 +28,7 @@ public:
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 	void update();
 	void block();
+	inline void die() { active = false; }
 	bool returnCollide(Object* obj);
 };
 

@@ -28,13 +28,13 @@ void ATank::draw(unsigned int modelLocation, unsigned int objColorLocation)
 
 	//머리 출력
 	glm::mat4 HEAD = glm::mat4(1.0f);
-	//코드 수정 필요
+
 	if (head_frame >= 3) {
 		head_frame = 0;
 		if (heady > 0.0f) heady = 0.0f;
 		else heady = 0.03f;
 	}
-	this->head_frame++;
+	head_frame++;
 	HEAD = glm::translate(HEAD, glm::vec3(x, heady, z));
 	HEAD = glm::rotate(HEAD, glm::radians(headR + tankR + DEFAULT_ROT), glm::vec3(0, 1, 0));
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(HEAD));
@@ -71,33 +71,31 @@ void ATank::update()
 {
 	Pawn::update();
 
-	headR += 5.f * headDirection;
-	tankR += 1.f * bodyDirection;
+	headR += BODY_ROTATE_SPEED * headDirection;
+	tankR += HEAD_ROTATE_SPEED * bodyDirection;
 
 	if (bMoved == true)
 	{
 		if (abs(tankSpeed) <= maxSpeed)
-			tankSpeed += 0.004f * moveDirection;
+			tankSpeed += ACCELERATION * moveDirection;
 		else tankSpeed = maxSpeed * moveDirection;
 	}
 	else
 	{
 		int sign = tankSpeed < 0 ? -1 : 1;
-		tankSpeed -= 0.006f * sign;
+		tankSpeed -= DECELERATION * sign;
 		if (abs(tankSpeed) <= 0.01f)
 		{
 			moveDirection = 0;
 			tankSpeed = 0.0f;
 		}
 	}
-	prevX = x;
-	prevZ = z;
 
-	float nextx = x + cos(-tankR * PI) * (tankSpeed);
-	float nextz = z + sin(-tankR * PI) * (tankSpeed);
+	x += cos(-tankR * PI) * (tankSpeed);
+	z += sin(-tankR * PI) * (tankSpeed);
 
-	x = (nextx >= 24.6f || nextx <= -24.6f) ? x : nextx;
-	z = (nextz >= 24.6f || nextz <= -24.6f) ? z : nextz;
+	//x = (nextx >= 24.6f || nextx <= -24.6f) ? x : nextx;
+	//z = (nextz >= 24.6f || nextz <= -24.6f) ? z : nextz;
 }
 
 void ATank::charge()

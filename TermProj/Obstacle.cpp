@@ -20,7 +20,7 @@ void Obstacle::draw(unsigned int modelLocation, unsigned int objColorLocation)
 {
 	if (type == 3) block_y = -90.0f;
 	glm::mat4 BLOCK = glm::mat4(1.0f);
-	BLOCK = glm::translate(BLOCK, glm::vec3(this->x, this->y, this->z));
+	BLOCK = glm::translate(BLOCK, glm::vec3(block_x, y, block_z));
 	BLOCK = glm::rotate(BLOCK, (GLfloat)glm::radians(block_y), glm::vec3(0.0f, 1.0f, 0.0f));
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(BLOCK));
 	glUniform3f(objColorLocation, 0.7, 0.7, 0.7);

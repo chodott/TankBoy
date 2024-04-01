@@ -10,7 +10,8 @@ void Pawn::setMaxHp(float hp)
 void Pawn::hit(float power)
 {
 	hp -= power;
-	active = hp > 0 ? true : false;
+	if (hp > 0) return;
+	die();
 }
 
 void Pawn::draw(unsigned int modelLocation, unsigned int objColorLocation)
@@ -58,6 +59,7 @@ bool Pawn::returnCollide(Object* obj)
 	sort(delete_vec.begin(), delete_vec.end(), greater<int>());
 	for (int i : delete_vec)
 	{
+		delete(bullet_vec[i]);
 		bullet_vec.erase(bullet_vec.begin() + i);
 	}
 	return this->Object::returnCollide(obj);

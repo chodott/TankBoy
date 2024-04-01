@@ -9,18 +9,35 @@ public:
 
 	static GLuint VAO[2];
 	static GLuint VBO[2][3];
-	static unsigned int block_texture; //장애물 텍스처는 한 파일로 처리했음
+	static unsigned int block_texture
+		; //장애물 텍스처는 한 파일로 처리했음
 	static int block_obj[2];
 
 public:
 	int type; //1: 1x1 / 2: 2x1 / 3: 1x2
 	float block_y = 0.0f;
+	float block_x;
+	float block_z;
 
 	void setPos(float x, float z, int type)
 	{
-		this->x = x;
-		this->z = z;
+		block_x = x;
+		block_z = z;
 		this->type = type;
+		switch (type)
+		{
+		case 1:
+			this->x = block_x;
+			this->z = block_z;
+			break;
+		case 2:
+			this->x = block_x + OBSTACLE_SIZE/2;
+			this->z = block_z;
+			break;
+		case 3:
+			this->x = block_x;
+			this->z = block_z + OBSTACLE_SIZE/2;
+		}
 		setBoundary(OBSTACLE_SIZE, OBSTACLE_SIZE);
 	}
 	void setBoundary(float width, float height);

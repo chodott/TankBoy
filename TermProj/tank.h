@@ -3,6 +3,10 @@
 #include "Item.h"
 
 #define TANK_SIZE 1.f
+#define BODY_ROTATE_SPEED 1.f
+#define HEAD_ROTATE_SPEED 5.f
+#define ACCELERATION 0.004f
+#define DECELERATION 0.006f
 #define UPGRADE_CNT 5
 
 class ATank : public Pawn
@@ -25,7 +29,7 @@ public:
 	float tankR = 0; //몸체 각도
 	float headR = 0; //머리 각도
 	float heady = 0.0f; //머리 애니메이션에 사용
-	float tankSpeed = 0.0f;
+	float tankSpeed = 0.04f;
 	float reload = 1.0f;
 	int head_frame = 0; //머리 흔들리는 애니메이션에 사용
 	int timer = 0;
