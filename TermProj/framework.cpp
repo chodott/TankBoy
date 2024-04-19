@@ -715,31 +715,34 @@ void Framework::spawn(int level)
 
 	time_t now = time(NULL) - start_time;
 
+	float setX, setZ;
 	int x = rand() % 50;
 	int z = rand() % 50;
-	if (map[25][25] == 0) 
+	while (map[x][z] != false)
 	{
-		x = (x - 25) + 0.5f;
-		z = (z - 25) + 0.5f;
+		x = rand() % 50;
+		z = rand() % 50;
 	}
+	setX = (x - 25) + 0.5f;
+	setZ = (z - 25) + 0.5f;
 
 	if (now - ARifleMan::spawnTime > ARifleMan::spawnLength)
 	{
-		ARifleMan* rifleman = new ARifleMan(x, z, level, controller->getPlayer());
+		ARifleMan* rifleman = new ARifleMan(setX, setZ, level, controller->getPlayer());
 		ARifleMan::spawnTime = now;
 		object_vec[ENEMY].emplace_back(rifleman);
 	}
 
 	if (now - ABazookaMan::spawnTime > ABazookaMan::spawnLength)
 	{
-		ABazookaMan* bazookaman = new ABazookaMan(x, z, level, controller->getPlayer());
+		ABazookaMan* bazookaman = new ABazookaMan(setX, setZ, level, controller->getPlayer());
 		ABazookaMan::spawnTime = now;
 		object_vec[ENEMY].emplace_back(bazookaman);
 	}
 
 	if (now - Item::spawnTime > Item::spawnLength)
 	{
-		Item* item = new Item(x, z);
+		Item* item = new Item(setX, setZ);
 		Item::spawnTime = now;
 		object_vec[ITEM].emplace_back(item);
 	}
@@ -822,6 +825,7 @@ void Framework::draw(GLuint s_program)
 
 void Framework::update()
 {
+
 	spawn(1);
 	for (auto& objects : object_vec)
 	{

@@ -3,8 +3,9 @@
 #include "Item.h"
 
 #define TANK_SIZE 1.f
-#define BODY_ROTATE_SPEED 1.f
-#define HEAD_ROTATE_SPEED 5.f
+#define BODY_ROTATE_SPEED 2.f
+#define HEAD_ROTATE_SPEED 4.f
+#define HEAD_GUN_GAP 0.7f
 #define ACCELERATION 0.004f
 #define DECELERATION 0.006f
 #define UPGRADE_CNT 5
@@ -47,6 +48,7 @@ public:
 		hpbar->setType(false);
 		setBoundary(TANK_SIZE, TANK_SIZE);
 		power = 5.f;
+		reloadLength = 1.f;
 	}
 
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
@@ -56,7 +58,6 @@ public:
 	void moveForward(int direction);
 	void stopMove(int direction);
 	void charge();
-	void attack();
 	void turnHead(int direction);
 	void stopHead(int direction);
 	void turnBody(int direction);

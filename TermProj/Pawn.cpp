@@ -14,6 +14,15 @@ void Pawn::hit(float power)
 	die();
 }
 
+void Pawn::attack()
+{
+	time_t now = time(NULL);
+	if (now - attacked_time < reloadLength) return;
+
+	bullet_vec.emplace_back(new ABullet(x, y, z, -rot));
+	attacked_time = now;
+}
+
 void Pawn::draw(unsigned int modelLocation, unsigned int objColorLocation)
 {
 	hpbar->draw(modelLocation, objColorLocation);

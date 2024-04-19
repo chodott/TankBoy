@@ -43,6 +43,7 @@ public:
 
 	Framework() { 
 		start_time = time(NULL); //시작 시간 설정
+
 		ATank* playerTank = new ATank();
 		object_vec.resize(5);
 		object_vec[TANK].emplace_back(playerTank);

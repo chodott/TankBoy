@@ -47,7 +47,7 @@ void ATank::draw(unsigned int modelLocation, unsigned int objColorLocation)
 	//발사구 출력
 	glm::mat4 CANNON = glm::mat4(1.0f);
 	CANNON = HEAD;
-	CANNON = glm::translate(CANNON, glm::vec3(0.0f, 0.7f, 0));
+	CANNON = glm::translate(CANNON, glm::vec3(0.0f, HEAD_GUN_GAP, 0));
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(CANNON));
 	glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
 	glBindTexture(GL_TEXTURE_2D, this->cannon_texture);
@@ -71,11 +71,11 @@ void ATank::update()
 {
 	Pawn::update();
 
-	headR += BODY_ROTATE_SPEED * headDirection;
-	tankR += HEAD_ROTATE_SPEED * bodyDirection;
+	headR += HEAD_ROTATE_SPEED * headDirection;
+	tankR += BODY_ROTATE_SPEED * bodyDirection;
 
 	if (bMoved == true)
-	{
+	{	
 		if (abs(tankSpeed) <= maxSpeed)
 			tankSpeed += ACCELERATION * moveDirection;
 		else tankSpeed = maxSpeed * moveDirection;
@@ -91,11 +91,13 @@ void ATank::update()
 		}
 	}
 
-	x += cos(-tankR * PI) * (tankSpeed);
-	z += sin(-tankR * PI) * (tankSpeed);
+	float nextx = x + cos(-tankR * PI) * (tankSpeed);
+	float nextz = z + sin(-tankR * PI) * (tankSpeed);
 
-	//x = (nextx >= 24.6f || nextx <= -24.6f) ? x : nextx;
-	//z = (nextz >= 24.6f || nextz <= -24.6f) ? z : nextz;
+	rot = tankR + headR;
+
+	x = (nextx >= MAP_WIDTH || nextx <= -MAP_WIDTH) ? x : nextx;
+	z = (nextz >= MAP_WIDTH || nextz <= -MAP_WIDTH) ? z : nextz;
 }
 
 void ATank::charge()
@@ -112,11 +114,6 @@ void ATank::charge()
 		//point[i].y = 0.7f + height_accel * i;
 		height_accel -= gravity;
 	}
-}
-
-void ATank::attack()
-{
-	bullet_vec.emplace_back(new ABullet(x,y,z, -(tankR + headR)));
 }
 
 void ATank::hit(int power)
@@ -175,6 +172,7 @@ bool ATank::returnCollide(Object* obj)
 	{
 		upgrade();
 		item->active = false;
+		bCrashed = false;
 	}
 	return bCrashed;
 }

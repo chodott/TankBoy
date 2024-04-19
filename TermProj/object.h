@@ -42,8 +42,6 @@ public:
 
 	virtual void draw(unsigned int modelLocation, unsigned int objColorLocation);
 
-	void move();
-
 	virtual void update();
 
 	virtual void setBoundary(float width, float height);

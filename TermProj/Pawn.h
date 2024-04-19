@@ -1,15 +1,18 @@
 #pragma once
 #include "Bullet.h"
+#define MAP_WIDTH 24.6f
 class Pawn : public Object
 {
 public:
 	vector<ABullet*> bullet_vec;
 	HpBar* hpbar = nullptr;
+	time_t attacked_time = 0;
 	int maxHp = 1.f;
 	int hp = 1.f;
 	int power = 1;
 	float prevX;
 	float prevZ;
+	float reloadLength = 3.f;
 
 	Pawn() { hpbar = new HpBar(); };
 	~Pawn()
@@ -24,6 +27,7 @@ public:
 		this->z = z;
 	}
 	virtual void hit(float power);
+	virtual void attack();
 
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 	void update();

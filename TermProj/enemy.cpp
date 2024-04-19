@@ -27,26 +27,20 @@ void Enemy::draw(unsigned int modelLocation, unsigned int objColorLocation)
 	glUniform3f(objColorLocation, 1.0, 1.0, 1.0);
 	glActiveTexture(GL_TEXTURE0);
 }
+
 void Enemy::update()
 {
 	Pawn::update();
 
-	float distance = sqrt((target->z - z) * (target->z - z) + (target->x -x) * (target->x - x)); //간격
+	float distance = sqrt(pow(target->z - z, 2)  + pow(target->x -x, 2));		//플레이어와의 거리
 	float r = atan2((target->z - z), (target->x - x));
 	rot = -r * 60;
-	if (distance > range) { //사정거리 보다 멀면 이동
+	if (distance > range) 
+	{	//사정거리 밖일 떄 이동
 		x += cos(r) * speed;
 		z += sin(r) * speed;
 	}
 	else this->attack();
-}
-
-void Enemy::attack()
-{
-	time_t now = time(NULL);
-	if (now - attacked_time < reloadLength) return;
-	bullet_vec.emplace_back(new ABullet(x, y, z, -rot));
-	attacked_time = now;
 }
 
 

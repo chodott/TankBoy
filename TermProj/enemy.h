@@ -4,16 +4,17 @@
 
 #define ENEMY_SIZE 1.0f
 #define RIFLE_RANGE 4.f;
+#define RIFLE_RELOAD 2.f;
 #define BAZOOKA_RANGE 7.f
+#define BAZOOKA_RELOAD 3.f
 
 class Enemy : public Pawn
 {
 public:
-	time_t attacked_time = 0;
 	Object* target = nullptr;
 	float speed = 0.01;
 	float range = 4.0f;
-	float reloadLength = 1.f;
+	
 
 	Enemy(float x, float z, Object* obj) : target(obj)
 	{
@@ -25,7 +26,6 @@ public:
 
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 	void update();
-	void attack();
 };
 
 class ARifleMan : public Enemy
@@ -43,6 +43,7 @@ public:
 		setMaxHp(level * 5.f);
 		power = level;
 		range = RIFLE_RANGE;
+		reloadLength = RIFLE_RELOAD;
 	};
 
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
@@ -66,6 +67,7 @@ public:
 		setMaxHp(level * 7.f);
 		power = level * 2.f;
 		range = BAZOOKA_RANGE;
+		reloadLength = BAZOOKA_RELOAD;
 	};
 
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
