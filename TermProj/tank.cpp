@@ -69,8 +69,6 @@ void ATank::stopMove(int direction)
 
 void ATank::update()
 {
-	Pawn::update();
-
 	headR += HEAD_ROTATE_SPEED * headDirection;
 	tankR += BODY_ROTATE_SPEED * bodyDirection;
 
@@ -98,6 +96,9 @@ void ATank::update()
 
 	x = (nextx >= MAP_WIDTH || nextx <= -MAP_WIDTH) ? x : nextx;
 	z = (nextz >= MAP_WIDTH || nextz <= -MAP_WIDTH) ? z : nextz;
+
+	Pawn::update();
+
 }
 
 void ATank::charge()
@@ -130,7 +131,6 @@ void ATank::turnHead(int direction)
 void ATank::stopHead(int direction)
 {
 	if (direction != headDirection) return;
-
 	headDirection = 0;
 }
 
@@ -142,7 +142,6 @@ void ATank::turnBody(int direction)
 void ATank::stopBody(int direction)
 {
 	if (direction != bodyDirection) return;
-
 	bodyDirection = 0;
 }
 

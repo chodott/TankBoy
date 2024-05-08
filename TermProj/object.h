@@ -39,6 +39,7 @@ public:
 
 	Object() {}
 	Object(float x, float z) : x(x), z(z) {}
+	virtual ~Object() {};
 
 	virtual void draw(unsigned int modelLocation, unsigned int objColorLocation);
 

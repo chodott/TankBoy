@@ -254,7 +254,7 @@ void Framework::InitBuffer()
 	glEnableVertexAttribArray(1);
 
 
-	//≈ ≈©(¿”¿«)
+	//≈ ≈©
 	ATank::obj_body = loadObj("tank_body.obj");
 	cout << "≈ ≈© ªÔ∞¢«¸ ºˆ" << ATank::obj_body << endl;
 
@@ -887,8 +887,8 @@ void Framework::deleteTrash()
 void Framework::update_level()
 {
 	time_t startToNow = time(NULL) - start_time;
-	if (startToNow >= 80 && GAME_LEVEL != 5) GAME_LEVEL = 5;
-	else 	if (startToNow >= 60 && GAME_LEVEL != 4) GAME_LEVEL = 4;
-	else 	if (startToNow >= 40 && GAME_LEVEL != 3) GAME_LEVEL = 3;
-	else 	if (startToNow >= 20 && GAME_LEVEL != 2) GAME_LEVEL = 2;
+	if (startToNow >= 80 && GAME_LEVEL == 4) GAME_LEVEL = 5;
+	else 	if (startToNow >= 60 && GAME_LEVEL == 3) GAME_LEVEL = 4;
+	else 	if (startToNow >= 40 && GAME_LEVEL == 2) GAME_LEVEL = 3;
+	else 	if (startToNow >= 20 && GAME_LEVEL == 1) GAME_LEVEL = 2;
 }

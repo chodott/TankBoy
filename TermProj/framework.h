@@ -34,9 +34,11 @@ public:
 	std::vector< glm::vec3 > outvertex, outnormal;
 	std::vector< glm::vec2 > outuv;
 	
-	vector<vector<Object*>> object_vec;
 	Controller* controller;
-	priority_queue<pair<EObjectType, int>, vector<pair<EObjectType, int>>, greater<pair<EObjectType, int>>> delete_pq;
+
+	vector<vector<Object*>> object_vec;
+	priority_queue<pair<EObjectType, int>, vector<pair<EObjectType, int>>,
+		greater<pair<EObjectType, int>>> delete_pq;
 
 	int loadObj(const char* filename);
 	int loadObj_normalize_center(const char* filename);
