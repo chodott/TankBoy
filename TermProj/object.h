@@ -9,6 +9,7 @@
 #include <gl/freeglut_ext.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
+#include "ObjectPool.h"
 using namespace std;
 
 #define PI 3.141592/180
@@ -50,6 +51,11 @@ public:
 	virtual void block();
 
 	virtual bool returnCollide(Object* obj);
+
+	virtual void reset();
+
+	virtual void initialize();
+
 };
 
 class Title : public Object

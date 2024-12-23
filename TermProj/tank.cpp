@@ -169,8 +169,9 @@ bool ATank::returnCollide(Object* obj)
 	if (bCrashed == false) return bCrashed;
 	if (item != nullptr)
 	{
+		if (!item->onfoot) return false;
 		upgrade();
-		item->active = false;
+		ObjectPool::destroyObj<Item>(item);
 		bCrashed = false;
 	}
 	return bCrashed;

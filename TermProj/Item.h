@@ -19,10 +19,18 @@ public:
 	Item() {
 		setBoundary(size, size);
 		y = ITEM_SPAWN_Y;
+		itemCnt++;
+		cout << itemCnt << " ";
+		initialize();
 	};
 	Item(float x, float z) : Plate(x, z) {Item();}
 
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 	void update();
+	void reset();
+	void initialize();
+
+	//Debug
+	static int itemCnt;
 };
 

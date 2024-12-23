@@ -8,6 +8,8 @@ time_t Item::spawnTime = 0.f;
 time_t Item::spawnLength = 7.f;
 float Item::size = 1.f;
 
+int Item::itemCnt = 0;
+
 void Item::draw(unsigned int modelLocation, unsigned int objColorLocation)
 {
 	glm::mat4 ITEM = glm::mat4(1.0f);
@@ -31,4 +33,16 @@ void Item::update()
 	}
 	if (rot <= 360.0f) rot += 1.0f;
 	else rot = 0;
+}
+
+void Item::reset()
+{
+	active = false;
+	onfoot = false;
+}
+
+void Item::initialize()
+{
+	y = 5.0f;
+	active = true;
 }

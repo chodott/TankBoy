@@ -742,7 +742,8 @@ void Framework::spawn(int level)
 
 	if (now - Item::spawnTime > Item::spawnLength)
 	{
-		Item* item = new Item(setX, setZ);
+		//Item* item = new Item(setX, setZ);
+		Item* item = ObjectPool::getObj<Item>();
 		Item::spawnTime = now;
 		object_vec[ITEM].emplace_back(item);
 	}
@@ -879,7 +880,6 @@ void Framework::deleteTrash()
 		int type = info.first;
 		int index = info.second;
 		vector<Object*>& objects = object_vec[type];
-		delete(objects[index]);
 		objects.erase(objects.begin() + index);
 	}
 }

@@ -59,6 +59,16 @@ bool Object::returnCollide(Object* obj)
 	return true;
 }
 
+void Object::reset()
+{
+
+}
+
+void Object::initialize()
+{
+
+}
+
 void Plate::draw(unsigned int modelLocation, unsigned int objColorLocation)
 {
 }
