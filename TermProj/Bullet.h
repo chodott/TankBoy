@@ -14,12 +14,8 @@ public:
 	float speed = 0.2f;
 	float rotate;
 
-	ABullet(float x, float y, float z):Object(x,y,z)
-	{
-		this->x = x;
-		this->y = y;
-		this->z = z;
-	};
+	ABullet(float x, float y, float z) :Object(x, y, z) {};
+
 
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 	void update();

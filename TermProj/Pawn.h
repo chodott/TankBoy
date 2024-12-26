@@ -23,12 +23,6 @@ public:
 		for (auto& bullet : bullet_vec) delete(bullet);
 	}
 	void setMaxHp(float hp);
-	void setPos(float x, float y, float z)
-	{
-		this->x = x;
-		this->y = y;
-		this->z = z;
-	}
 	virtual void hit(float power);
 	virtual void attack();
 

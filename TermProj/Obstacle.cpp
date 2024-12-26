@@ -16,6 +16,29 @@ void Obstacle::setBoundary(float width, float height)
 	}
 }
 
+void Obstacle::setPos(float x, float z, int type)
+{
+	block_x = x;
+	block_z = z;
+	this->type = type;
+	switch (type)
+	{
+	case 1:
+		this->x = block_x;
+		this->z = block_z;
+		break;
+	case 2:
+		this->x = block_x + OBSTACLE_SIZE / 2;
+		this->z = block_z;
+		break;
+	case 3:
+		this->x = block_x;
+		this->z = block_z + OBSTACLE_SIZE / 2;
+	}
+	setBoundary(OBSTACLE_SIZE, OBSTACLE_SIZE);
+}
+
+
 void Obstacle::draw(unsigned int modelLocation, unsigned int objColorLocation)
 {
 	if (type == 3) block_y = -90.0f;
