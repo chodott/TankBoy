@@ -46,7 +46,7 @@ public:
 	Framework() { 
 		start_time = time(NULL); //시작 시간 설정
 
-		ATank* playerTank = new ATank();
+		ATank* playerTank = new ATank(0,0,0);
 		object_vec.resize(5);
 		object_vec[TANK].emplace_back(playerTank);
 		controller = new Controller(playerTank);

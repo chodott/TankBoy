@@ -19,6 +19,7 @@ public:
 	float block_x;
 	float block_z;
 
+	Obstacle(float x, float y, float z):Object(x,y,z){}
 	void setPos(float x, float z, int type)
 	{
 		block_x = x;
@@ -56,11 +57,9 @@ public:
 	int type; //1: left / 0: floor / -1 : right
 
 public:
-	Wall(float x, float y, float z, int t): type(t)
+	Wall(float x, float y, float z, int t): Plate(x,y,z)
 	{
-		this->x = x;
-		this->y = y;
-		this->z = z;
+		type = t;
 	}
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 

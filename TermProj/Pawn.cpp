@@ -11,7 +11,8 @@ void Pawn::hit(float power)
 {
 	hp -= power;
 	if (hp > 0) return;
-	die();
+
+	ObjectPool::destroyObj(this);
 }
 
 void Pawn::attack()
@@ -19,7 +20,9 @@ void Pawn::attack()
 	time_t now = time(NULL);
 	if (now - attacked_time < reloadLength) return;
 
-	bullet_vec.emplace_back(new ABullet(x, y, z, -rot));
+	ABullet* bullet = ObjectPool::getObj<ABullet>(x,y,z);
+	bullet->rotate = -rot;
+	bullet_vec.emplace_back(bullet);
 	attacked_time = now;
 }
 
@@ -68,7 +71,7 @@ bool Pawn::returnCollide(Object* obj)
 	sort(delete_vec.begin(), delete_vec.end(), greater<int>());
 	for (int i : delete_vec)
 	{
-		delete(bullet_vec[i]);
+		ObjectPool::destroyObj(bullet_vec[i]);
 		bullet_vec.erase(bullet_vec.begin() + i);
 	}
 	return this->Object::returnCollide(obj);

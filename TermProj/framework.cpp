@@ -674,8 +674,7 @@ void Framework::makeMap()
 	map[25][25] = true;
 
 	for (int i = 0; i < BLOCK_AMOUNT; i++) {
-		Obstacle* block = new Obstacle();
-		object_vec[2].emplace_back(block);
+		int setx, setz;
 		int shape = 0;
 		while (1) {
 			shape = (rand() % 3) + 1;
@@ -683,10 +682,9 @@ void Framework::makeMap()
 				int x = rand() % 50;
 				int z = rand() % 50;
 				if (!map[z][x]) {
-					x = (x - 25) + 0.5f;
-					z = (z - 25) + 0.5f;
-					block->setPos(x, z, shape);
-					map[z][x] = true;
+					setx = (x - 25) + 0.5f;
+					setz = (z - 25) + 0.5f;
+					map[setz][setx] = true;
 					break;
 				}
 			}
@@ -694,18 +692,20 @@ void Framework::makeMap()
 				int x = rand() % 49;
 				int z = rand() % 49;
 				if (!map[z][x]) {
-					x = (x - 25) + 0.5f;
-					z = (z - 25) + 0.5f;
-					block->setPos(x, z, shape);
-					map[z][x] = true;
+					setx = (x - 25) + 0.5f;
+					setz = (z - 25) + 0.5f;
+					map[setz][setx] = true;
 					if (shape == 2)
-						map[z][x + 1] = true;
+						map[setz][setx + 1] = true;
 					else if (shape == 3)
-						map[z + 1][x] = true;
+						map[setz + 1][setx] = true;
 					break;
 				}
 			}
 		}
+		Obstacle* block = new Obstacle(setx, 0.0f, setz);
+		block->setPos(setx, setz, shape);
+		object_vec[2].emplace_back(block);
 	}
 }
 
@@ -728,22 +728,23 @@ void Framework::spawn(int level)
 
 	if (now - ARifleMan::spawnTime > ARifleMan::spawnLength)
 	{
-		ARifleMan* rifleman = new ARifleMan(setX, setZ, level, controller->getPlayer());
+		ARifleMan* rifleman = ObjectPool::getObj<ARifleMan>(setX, 0.0f, setZ);
+		rifleman->setStatus(controller->getPlayer(), level);
 		ARifleMan::spawnTime = now;
 		object_vec[ENEMY].emplace_back(rifleman);
 	}
 
 	if (now - ABazookaMan::spawnTime > ABazookaMan::spawnLength)
 	{
-		ABazookaMan* bazookaman = new ABazookaMan(setX, setZ, level, controller->getPlayer());
+		ABazookaMan* bazookaman = ObjectPool::getObj<ABazookaMan>(setX, 0.0f, setZ);
+		bazookaman->setStatus(controller->getPlayer(), level);
 		ABazookaMan::spawnTime = now;
 		object_vec[ENEMY].emplace_back(bazookaman);
 	}
 
 	if (now - Item::spawnTime > Item::spawnLength)
 	{
-		//Item* item = new Item(setX, setZ);
-		Item* item = ObjectPool::getObj<Item>();
+		Item* item = ObjectPool::getObj<Item>(setX, 5.0f, setZ);
 		Item::spawnTime = now;
 		object_vec[ITEM].emplace_back(item);
 	}

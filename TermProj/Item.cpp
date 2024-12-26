@@ -41,8 +41,10 @@ void Item::reset()
 	onfoot = false;
 }
 
-void Item::initialize()
+void Item::initialize(float x, float y, float z)
 {
-	y = 5.0f;
+	this->x = x;
+	this->z = z;
+	y = -ITEM_SPAWN_Y;
 	active = true;
 }

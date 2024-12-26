@@ -61,12 +61,14 @@ bool Object::returnCollide(Object* obj)
 
 void Object::reset()
 {
-
+	active = false;
 }
 
-void Object::initialize()
+void Object::initialize(float x, float y, float z)
 {
-
+	this->x = x;
+	this->y = y;
+	this->z = z;
 }
 
 void Plate::draw(unsigned int modelLocation, unsigned int objColorLocation)

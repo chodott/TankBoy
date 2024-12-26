@@ -16,6 +16,11 @@ int ABazookaMan::bazooka_obj;
 time_t ABazookaMan::spawnTime = 0.f;
 time_t ABazookaMan::spawnLength = 10.f;
 
+void Enemy::setStatus(Object* obj, int level)
+{
+	target = obj;
+}
+
 void Enemy::draw(unsigned int modelLocation, unsigned int objColorLocation)
 {
 	Pawn::draw(modelLocation, objColorLocation);
@@ -44,6 +49,15 @@ void Enemy::update()
 }
 
 
+void ARifleMan::setStatus(Object* obj, int level)
+{
+	Enemy::setStatus(obj, level);
+	setMaxHp(level * 5.f);
+	power = level;
+	range = RIFLE_RANGE;
+	reloadLength = RIFLE_RELOAD;
+}
+
 void ARifleMan::draw(unsigned int modelLocation, unsigned int objColorLocation)
 {
 	Enemy::draw(modelLocation, objColorLocation);
@@ -52,6 +66,15 @@ void ARifleMan::draw(unsigned int modelLocation, unsigned int objColorLocation)
 	glDrawArrays(GL_TRIANGLES, 0, rifle_obj);
 }
 
+
+void ABazookaMan::setStatus(Object* obj, float level)
+{
+	Enemy::setStatus(obj, level);
+	setMaxHp(level * 7.f);
+	power = level * 2.f;
+	range = BAZOOKA_RANGE;
+	reloadLength = BAZOOKA_RELOAD;
+}
 
 void ABazookaMan::draw(unsigned int modelLocation, unsigned int objColorLocation)
 {

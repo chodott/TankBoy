@@ -14,7 +14,10 @@ public:
 	float prevZ;
 	float reloadLength = 3.f;
 
-	Pawn() { hpbar = new HpBar(); };
+	Pawn(float x, float y, float z) : Object(x,y,z)
+	{
+		hpbar = new HpBar(x,y,z);
+	}
 	~Pawn()
 	{
 		for (auto& bullet : bullet_vec) delete(bullet);
@@ -32,7 +35,7 @@ public:
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 	void update();
 	void block();
-	inline void die() { active = false; }
 	bool returnCollide(Object* obj);
+
 };
 

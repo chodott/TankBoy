@@ -42,7 +42,7 @@ public:
 	bool bPushedSpace = false;
 	bool supermode = false;
 
-	ATank() 
+	ATank(float x, float y, float z): Pawn(x,y,z)
 	{
 		setMaxHp(20.f);
 		hpbar->setType(false);

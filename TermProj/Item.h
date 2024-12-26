@@ -16,19 +16,12 @@ public:
 	float speed = 0.005;
 	bool onfoot = false;
 
-	Item() {
-		setBoundary(size, size);
-		y = ITEM_SPAWN_Y;
-		itemCnt++;
-		cout << itemCnt << " ";
-		initialize();
-	};
-	Item(float x, float z) : Plate(x, z) {Item();}
+	Item(float x, float y, float z) : Plate(x, y, z) { setBoundary(size, size); }
 
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 	void update();
 	void reset();
-	void initialize();
+	void initialize(float x, float y, float z);
 
 	//Debug
 	static int itemCnt;

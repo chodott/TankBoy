@@ -16,14 +16,12 @@ public:
 	float range = 4.0f;
 	
 
-	Enemy(float x, float z, Object* obj) : target(obj)
+	Enemy(float x, float y, float z) :Pawn(x, y, z)
 	{
-		this->x = x;
-		y = 0.f;
-		this->z = z;
 		setBoundary(ENEMY_SIZE, ENEMY_SIZE);
 	}
 
+	virtual void setStatus(Object* obj, int level);
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 	void update();
 };
@@ -38,14 +36,9 @@ public:
 	static int rifle_obj;
 	static unsigned int rifle_texture;
 
-	ARifleMan(float x, float z, int level, Object* obj) : Enemy(x, z, obj) 
-	{
-		setMaxHp(level * 5.f);
-		power = level;
-		range = RIFLE_RANGE;
-		reloadLength = RIFLE_RELOAD;
-	};
+	ARifleMan(float x, float z, int level) : Enemy(x, y, z) {};
 
+	void setStatus(Object* obj, int level);
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 };
 
@@ -54,7 +47,6 @@ class ABazookaMan : public Enemy
 {
 
 public:
-
 	static GLuint VAO;
 	static GLuint VBO[3];
 	static time_t spawnTime;
@@ -62,14 +54,9 @@ public:
 	static unsigned bazooka_texture;
 	static int bazooka_obj;
 
-	ABazookaMan(float x, float z, int level, Object* obj) : Enemy(x, z, obj) 
-	{
-		setMaxHp(level * 7.f);
-		power = level * 2.f;
-		range = BAZOOKA_RANGE;
-		reloadLength = BAZOOKA_RELOAD;
-	};
+	ABazookaMan(float x, float y, float z) : Enemy(x, y, z) {	};
 
+	void setStatus(Object* obj, float level);
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 };
 

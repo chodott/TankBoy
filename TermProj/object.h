@@ -38,8 +38,7 @@ public:
 	float rot = 0.f;
 	bool active = true;
 
-	Object() {}
-	Object(float x, float z) : x(x), z(z) {}
+	Object(float x, float y, float z)  { initialize(x,y,z); }
 	virtual ~Object() {};
 
 	virtual void draw(unsigned int modelLocation, unsigned int objColorLocation);
@@ -54,7 +53,7 @@ public:
 
 	virtual void reset();
 
-	virtual void initialize();
+	virtual void initialize(float x, float y, float z);
 
 };
 
@@ -75,9 +74,7 @@ public:
 	static GLuint VBO[2];
 	static float plate[48];
 	static float cube[216];
-
-	Plate() : Object() {}
-	Plate(float x, float z) : Object(x, z) {}
+	Plate(float x, float y, float z) :Object(x, y, z) {};
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 };
 
@@ -89,6 +86,7 @@ public:
 	float size;
 	bool bEnemy = true;
 
+	HpBar(float x, float y, float z) : Plate(x, y, z) { }
 	inline void setType(bool b) { bEnemy = b; }
 	void draw(unsigned int modelLocation, unsigned int objColorLocation);
 	void update(float x, float y, float z,  float curHp);

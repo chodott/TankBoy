@@ -15,15 +15,15 @@ private:
 
 public :
 	template <typename T>
-	static T* getObj()
+	static T* getObj(float x, float y, float z)
 	{
 		auto& pool = getPool<T>();
-		if (pool.empty()) return new T();
+		if (pool.empty()) return new T(x,y,z);
 		else
 		{
 			T* object = pool.back();
 			pool.pop_back();
-			object->initialize();
+			object->initialize(x,y,z);
 			return object;
 		}  
 	}

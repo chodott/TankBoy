@@ -14,7 +14,7 @@ public:
 	float speed = 0.2f;
 	float rotate;
 
-	ABullet(float x, float y, float z, float r) : rotate(r) 
+	ABullet(float x, float y, float z):Object(x,y,z)
 	{
 		this->x = x;
 		this->y = y;
